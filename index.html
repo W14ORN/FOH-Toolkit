@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0e11" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="FOH Toolkit" />
+  <meta name="description" content="FOH Toolkit — universal live-sound presets, RTA, ring-out assistant and show builder." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="app.css" />
+  <title>FOH Toolkit</title>
+</head>
+<body>
+  <div id="appShell" class="app-shell">
+    <header class="topbar">
+      <div>
+        <div class="brand-row">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <div>
+            <h1>FOH Toolkit</h1>
+            <p id="screenKicker">Presets. RTA. Ring-out. Better mixes.</p>
+          </div>
+        </div>
+      </div>
+      <button class="icon-button" id="settingsBtn" aria-label="Open settings">⚙</button>
+    </header>
+
+    <main id="mainContent">
+      <section class="screen active" data-screen="presets" id="screen-presets">
+        <div class="hero compact">
+          <span class="eyebrow">OFFICIAL LIBRARY</span>
+          <h2>Start fast. Mix by ear.</h2>
+          <p>Desk-independent starting points translated into the terminology of your console.</p>
+        </div>
+
+        <div class="toolbar sticky-tools">
+          <label class="search-box">
+            <span>⌕</span>
+            <input id="presetSearch" type="search" placeholder="Search kick, vocal, guitar…" autocomplete="off" />
+          </label>
+          <select id="categoryFilter" aria-label="Preset category">
+            <option value="all">All channels</option>
+          </select>
+        </div>
+
+        <div class="section-heading">
+          <div><span class="eyebrow">CURATED</span><h3>Channel presets</h3></div>
+          <span class="count-pill" id="presetCount"></span>
+        </div>
+        <div class="card-grid" id="presetGrid"></div>
+      </section>
+
+      <section class="screen" data-screen="rta" id="screen-rta">
+        <div class="hero compact">
+          <span class="eyebrow">LIVE ANALYSER</span>
+          <h2>RTA</h2>
+          <p>Use the phone mic or a connected audio input to see the room in real time.</p>
+        </div>
+
+        <div class="analyser-card">
+          <div class="analyser-topline">
+            <div><span class="metric-label">Dominant</span><strong id="rtaPeak">— Hz</strong></div>
+            <div><span class="metric-label">Relative level</span><strong id="rtaLevel">— dB</strong></div>
+          </div>
+          <canvas id="rtaCanvas" width="1000" height="520" aria-label="Real time frequency spectrum"></canvas>
+          <div class="freq-axis"><span>20</span><span>50</span><span>100</span><span>250</span><span>500</span><span>1k</span><span>2k</span><span>5k</span><span>10k</span><span>20k</span></div>
+        </div>
+
+        <div class="panel controls-panel">
+          <div class="field-row">
+            <label for="audioInput">Audio input</label>
+            <select id="audioInput"><option value="">Default microphone</option></select>
+          </div>
+          <div class="button-row">
+            <button class="primary" id="startRtaBtn">Start RTA</button>
+            <button class="secondary" id="stopRtaBtn" disabled>Stop</button>
+          </div>
+          <p class="helper">Levels are relative unless you calibrate against an SPL meter. Frequency detection is still useful without SPL calibration.</p>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="ringout" id="screen-ringout">
+        <div class="hero compact">
+          <span class="eyebrow">FEEDBACK ASSISTANT</span>
+          <h2>Ring Out</h2>
+          <p>FOH Toolkit watches for a narrow, persistent peak and suggests a sensible first cut.</p>
+        </div>
+
+        <div class="safety-strip"><strong>Protect hearing.</strong> Raise the monitor slowly. Stop immediately if feedback becomes uncomfortable.</div>
+
+        <div class="ring-display panel" id="ringDisplay">
+          <span class="status-dot" id="ringStatusDot"></span>
+          <span class="eyebrow" id="ringStatus">READY</span>
+          <div class="ring-frequency" id="ringFrequency">—</div>
+          <div class="ring-message" id="ringMessage">Start listening, then bring the monitor up gradually.</div>
+          <div class="suggestion-grid">
+            <div><span>Frequency</span><strong id="suggestFreq">—</strong></div>
+            <div><span>Cut</span><strong id="suggestCut">—</strong></div>
+            <div><span>Q</span><strong id="suggestQ">—</strong></div>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button class="primary" id="startRingBtn">Start listening</button>
+          <button class="secondary" id="saveRingBtn" disabled>Save cut</button>
+          <button class="ghost" id="stopRingBtn" disabled>Stop</button>
+        </div>
+
+        <div class="section-heading"><div><span class="eyebrow">THIS SESSION</span><h3>Suggested cuts</h3></div><button class="text-button" id="clearRingBtn">Clear</button></div>
+        <div id="ringCuts" class="list-stack empty-state">No cuts saved yet.</div>
+      </section>
+
+      <section class="screen" data-screen="shows" id="screen-shows">
+        <div class="hero compact">
+          <span class="eyebrow">SHOW BUILDER</span>
+          <h2>My Shows</h2>
+          <p>Build a channel list once and keep your preferred starting points together.</p>
+        </div>
+        <button class="primary full" id="newShowBtn">＋ New show</button>
+        <div id="showsList" class="list-stack"></div>
+      </section>
+
+      <section class="screen" data-screen="community" id="screen-community">
+        <div class="hero compact">
+          <span class="eyebrow">ENGINEER COMMUNITY</span>
+          <h2>Community</h2>
+          <p>Engineer-submitted starting points. Public presets must pass review before appearing here.</p>
+        </div>
+
+        <div class="segment" role="tablist">
+          <button class="active" data-community-tab="approved">Approved</button>
+          <button data-community-tab="submit">Submit</button>
+          <button data-community-tab="review">Review queue</button>
+        </div>
+
+        <div class="community-pane active" data-community-pane="approved">
+          <div id="communityApproved" class="card-grid"></div>
+        </div>
+
+        <div class="community-pane" data-community-pane="submit">
+          <form id="communityForm" class="panel form-panel">
+            <div class="field"><label>Preset name</label><input name="name" required placeholder="e.g. Lead Vocal — Indie Rock" /></div>
+            <div class="two-col">
+              <div class="field"><label>Channel type</label><input name="category" required placeholder="Lead Vocal" /></div>
+              <div class="field"><label>Genre/style</label><input name="style" required placeholder="Indie / Rock" /></div>
+            </div>
+            <div class="field"><label>What makes it useful?</label><textarea name="description" required rows="4" placeholder="Describe the source, goal and when you use it."></textarea></div>
+            <div class="field"><label>Settings</label><textarea name="settings" required rows="7" placeholder="HPF: 100 Hz\nEQ: -3 dB @ 250 Hz, Q 1.4\nComp: 3:1, attack 15 ms…"></textarea></div>
+            <button class="primary full" type="submit">Submit for approval</button>
+            <p class="helper">Prototype: submissions are stored only on this device. The production version will use a shared moderated database.</p>
+          </form>
+        </div>
+
+        <div class="community-pane" data-community-pane="review">
+          <div class="safety-strip neutral"><strong>Prototype moderator view.</strong> In production this area will be restricted to approved moderators.</div>
+          <div id="reviewQueue" class="list-stack"></div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Main navigation">
+      <button class="active" data-nav="presets"><span>▤</span><small>Presets</small></button>
+      <button data-nav="rta"><span>⌁</span><small>RTA</small></button>
+      <button data-nav="ringout"><span>◉</span><small>Ring Out</small></button>
+      <button data-nav="shows"><span>≡</span><small>Shows</small></button>
+      <button data-nav="community"><span>♙</span><small>Community</small></button>
+    </nav>
+  </div>
+
+  <dialog id="presetDialog" class="sheet-dialog">
+    <div class="sheet-handle"></div>
+    <div id="presetDetail"></div>
+    <button class="icon-button close-sheet" data-close-dialog="presetDialog" aria-label="Close">×</button>
+  </dialog>
+
+  <dialog id="showDialog" class="sheet-dialog">
+    <div class="sheet-handle"></div>
+    <div id="showDetail"></div>
+    <button class="icon-button close-sheet" data-close-dialog="showDialog" aria-label="Close">×</button>
+  </dialog>
+
+  <dialog id="settingsDialog" class="sheet-dialog small-sheet">
+    <div class="sheet-handle"></div>
+    <div class="dialog-heading"><span class="eyebrow">APP</span><h2>Settings</h2></div>
+    <div class="panel settings-list">
+      <div class="field-row"><label for="consoleSelect">Default console</label><select id="consoleSelect"></select></div>
+      <div class="field-row"><label for="smoothingSelect">RTA smoothing</label><select id="smoothingSelect"><option value="0.5">Fast</option><option value="0.68" selected>Balanced</option><option value="0.82">Slow</option></select></div>
+    </div>
+    <button class="primary full" id="installBtn" hidden>Install FOH Toolkit</button>
+    <div class="panel about-card"><strong>FOH Toolkit Prototype</strong><p>Everything in this build runs locally in your browser. No paid services required.</p><small id="versionText"></small></div>
+    <button class="icon-button close-sheet" data-close-dialog="settingsDialog" aria-label="Close">×</button>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js" defer></script>
+</body>
+</html>
