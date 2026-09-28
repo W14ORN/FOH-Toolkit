@@ -2,11 +2,11 @@
 (function(){
   'use strict';
 
-  const SQ_KEYS = new Set(['ah_sq5','ah_sq6','ah_sq7','ah_sqrack','ah_sq5plus','ah_sq6plus','ah_sq7plus','ah_sq','sq']);
+  const SQ_KEYS = new Set(['ah_sq5','ah_sq6','ah_sq7','ah_sq','sq']);
   const SQ_IMAGE_LEN = 131072;
   const SQ_STRIP_BASE = 0x374;
   const SQ_STRIP_STRIDE = 336;
-  const SQ_NAME_LEN = 13;
+  const SQ_NAME_LEN = 13; // observed SQ show field; bytes +0x0D..+0x0F are flags, not name bytes
   const SQ_SCENE_NAME_OFFSET = 0x14;
   const SQ_SCENE_NAME_LEN = 16;
   const SQ_SENTINELS = [
@@ -47,10 +47,12 @@
   function writeU32(a,o,v){a[o]=v&255;a[o+1]=(v>>>8)&255;a[o+2]=(v>>>16)&255;a[o+3]=(v>>>24)&255;}
 
   function basename(path){return String(path||'').replace(/\\/g,'/').split('/').filter(Boolean).pop()||'';}
+  function dirname(path){const p=String(path||'').replace(/\\/g,'/');const i=p.lastIndexOf('/');return i<0?'':p.slice(0,i+1);}
   function safeName(s){return String(s||'show').replace(/[^a-z0-9-_]+/gi,'_').replace(/^_+|_+$/g,'')||'show';}
+  function usbShowPath(path){const p=String(path||'').replace(/\\/g,'/'),parts=p.split('/').filter(Boolean),existing=parts.findIndex(x=>/^AHSQ$/i.test(x));if(existing>=0&&/^SHOWS$/i.test(parts[existing+1]||'')&&/^SHOW\d{4}$/i.test(parts[existing+2]||''))return ['AHSQ','SHOWS',parts[existing+2].toUpperCase(),basename(p)].join('/');const showDir=parts.find(x=>/^SHOW\d{4}$/i.test(x));return `AHSQ/SHOWS/${(showDir||'SHOW0000').toUpperCase()}/${basename(p)}`;}
 
   async function inflateRaw(bytes){
-    if(typeof DecompressionStream==='undefined') throw new Error('This browser cannot unpack a compressed SQ template. Use a newer browser or an uncompressed ZIP.');
+    if(typeof DecompressionStream==='undefined') throw new Error('This browser cannot unpack a compressed SQ template. Try exporting the template as an uncompressed ZIP or use a newer browser.');
     let ds;
     try{ ds=new DecompressionStream('deflate-raw'); }
     catch(e){ throw new Error('This browser does not support raw ZIP decompression. Please update the browser before testing SQ export.'); }
@@ -200,16 +202,15 @@
     if(!validateSqImage(nv.data)||!checkAhChecksum(nv.data)) throw new Error('NVDATA.DAT is not a validated SQ show image or its checksum is invalid.');
     const scenes=dat.filter(e=>/^SCENE\d+\.DAT$/i.test(basename(e.name)));
     for(const sc of scenes){if(!validateSqImage(sc.data)||!checkAhChecksum(sc.data))throw new Error(`${basename(sc.name)} failed SQ validation.`);}
-    templateCache={fileName:file.name,entries:entries.map(e=>({name:e.name,data:new Uint8Array(e.data)})),loadedAt:Date.now(),sceneCount:scenes.length};
+    templateCache={fileName:file.name,entries:dat.map(e=>({name:e.name,data:new Uint8Array(e.data)})),loadedAt:Date.now(),sceneCount:scenes.length};
     return templateCache;
   }
 
   function buildSqExport(show){
     if(!templateCache) throw new Error('Load a clean SQ template ZIP first.');
     const entries=templateCache.entries
-      .filter(e=>!/(^|\/)(__MACOSX|\.DS_Store)(\/|$)/i.test(e.name))
-      .map(e=>({name:e.name,data:new Uint8Array(e.data)}));
-    let changedImages=0,patches=0;
+      .map(e=>({name:usbShowPath(e.name),data:new Uint8Array(e.data)}));
+    let changedImages=0,patches=0,names=0;
     for(const entry of entries){
       const base=basename(entry.name).toUpperCase();
       if(base==='SHOW.DAT'){writeShowName(entry.data,show.name);continue;}
@@ -217,11 +218,11 @@
         if(!validateSqImage(entry.data))continue;
         const isScene=base.startsWith('SCENE');
         const mapped=applyShowToSqImage(entry.data,show,isScene);
-        patches+=mapped.length; changedImages++;
+        patches+=mapped.length; names+=show.channels.length; changedImages++;
       }
     }
     if(!changedImages) throw new Error('No SQ mixer-state image was found in the template.');
-    return {bytes:zipStored(entries),patches,images:changedImages};
+    return {bytes:zipStored(entries),patches,names,images:changedImages};
   }
 
   function downloadBytes(bytes,name,type='application/zip'){
@@ -231,12 +232,12 @@
 
   function isSqShow(show){return !!show&&SQ_KEYS.has(String(show.console||''));}
 
-  function sqPanelHTML(){
+  function sqPanelHTML(show){
     const loaded=templateCache?`<strong>Template loaded:</strong> ${esc(templateCache.fileName)} · ${templateCache.sceneCount} scene${templateCache.sceneCount===1?'':'s'}`:'No SQ template loaded yet.';
     return `<div class="panel export-panel sq-native-beta" id="sqNativeExportPanel">
-      <span class="eyebrow">ALLEN &amp; HEATH SQ · NATIVE EXPORT BETA</span>
+      <span class="eyebrow">ALLEN &amp; HEATH SQ-5 / SQ-6 / SQ-7 · NATIVE EXPORT BETA</span>
       <h3>SQ show test export</h3>
-      <p>This first native-export test writes the show name, input-channel names and supported input patching into a real SQ show image, then recalculates the Allen &amp; Heath checksum. It intentionally does <strong>not</strong> claim processing, output patch, DCA/mute assignments or SoftKeys yet.</p>
+      <p>This first native-export test writes the show name, input-channel names and supported input patching into a real SQ show image, recalculates the Allen &amp; Heath checksum and packages it under AHSQ/SHOWS for USB/MixPad testing. It intentionally does <strong>not</strong> claim processing, output patch, DCA/mute assignments or SoftKeys yet.</p>
       <div class="programming-status"><strong>TEST IN MIXPAD FIRST</strong><span>Do not rely on this file for a live show until the generated ZIP has opened correctly in SQ MixPad and the programmed values have been checked.</span></div>
       <label class="sq-template-picker"><span>1. Load a clean SQ show ZIP</span><input type="file" id="sqTemplateInput" accept=".zip,application/zip" /></label>
       <div class="helper" id="sqTemplateStatus">${loaded}</div>
@@ -252,7 +253,8 @@
     if(!isSqShow(show))return;
     const exportPanel=detail.querySelector('.export-panel');
     if(!exportPanel||detail.querySelector('#sqNativeExportPanel'))return;
-    exportPanel.insertAdjacentHTML('afterend',sqPanelHTML());
+    const p=exportPanel.querySelector('p');if(p)p.textContent='This JSON package remains useful as a FOH Toolkit backup. The SQ native test exporter is available below for classic SQ-5 / SQ-6 / SQ-7 shows.';
+    exportPanel.insertAdjacentHTML('afterend',sqPanelHTML(show));
   }
 
   const previousOpenShow=window.openShow;
