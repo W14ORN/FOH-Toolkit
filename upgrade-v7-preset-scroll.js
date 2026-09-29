@@ -52,4 +52,13 @@
       if(version)version.textContent='Prototype 1.5.4';
     },0);
   });
+
+  // Prototype 1.6 is loaded here so older installed PWAs only need the updated
+  // cached upgrade script; the main HTML remains compatible with existing installs.
+  if(!document.querySelector('script[data-foh-v8]')){
+    const s=document.createElement('script');
+    s.src='upgrade-v8-show-wizard.js';
+    s.dataset.fohV8='1';
+    document.head.appendChild(s);
+  }
 })();
