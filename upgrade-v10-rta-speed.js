@@ -96,12 +96,21 @@
     drawRta=wrapped;
   }
 
+  function loadV11(){
+    if(document.querySelector('script[data-foh-v11]'))return;
+    const s=document.createElement('script');
+    s.src='upgrade-v11-auth-sync.js';
+    s.dataset.fohV11='1';
+    document.head.appendChild(s);
+  }
+
   function ready(){
     installControl();
     setTimeout(()=>{
       const version=document.getElementById('versionText');
-      if(version)version.textContent='Prototype 1.7.3';
+      if(version)version.textContent='Prototype 1.8.0';
     },250);
+    loadV11();
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();

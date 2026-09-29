@@ -1,0 +1,22 @@
+/* FOH Toolkit Prototype 1.8 — account + cloud sync */
+.foh-auth-gate{position:fixed;inset:0;z-index:10000;background:linear-gradient(180deg,#080b0e 0%,#0d1216 100%);display:flex;align-items:center;justify-content:center;padding:max(24px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom));overflow:auto}
+.foh-auth-gate[hidden]{display:none!important}
+.foh-auth-card{width:min(440px,100%);background:#11171b;border:1px solid #273038;border-radius:22px;padding:24px;box-shadow:0 26px 70px rgba(0,0,0,.45)}
+.foh-auth-brand{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.foh-auth-brand .brand-mark{flex:0 0 auto}
+.foh-auth-brand h1{font-size:24px;margin:0}.foh-auth-brand p{margin:4px 0 0;color:var(--muted,#9ca8ae);font-size:12px}
+.foh-auth-tabs{display:grid;grid-template-columns:1fr 1fr;background:#090d10;border:1px solid #222b31;border-radius:12px;padding:4px;margin-bottom:18px}
+.foh-auth-tabs button{border:0;background:transparent;color:var(--muted,#9ca8ae);padding:10px;border-radius:9px;font-weight:700}
+.foh-auth-tabs button.active{background:#1b242a;color:#fff}
+.foh-auth-form{display:grid;gap:13px}.foh-auth-form .field{display:grid;gap:6px}.foh-auth-form label{font-size:11px;color:var(--muted,#9ca8ae);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.foh-auth-form input{width:100%;box-sizing:border-box;background:#080c0f;color:#fff;border:1px solid #2a343b;border-radius:11px;padding:13px 12px;font-size:16px;outline:none}
+.foh-auth-form input:focus{border-color:#4bd4a0;box-shadow:0 0 0 2px rgba(75,212,160,.12)}
+.foh-auth-message{min-height:18px;margin:2px 0 0;color:var(--muted,#9ca8ae);font-size:12px;line-height:1.45}.foh-auth-message.error{color:#ff8f8f}.foh-auth-message.success{color:#6fe3b4}
+.foh-auth-foot{margin:16px 0 0;color:var(--dim,#748088);font-size:11px;line-height:1.45;text-align:center}
+.foh-auth-loading{display:flex;align-items:center;gap:9px;color:var(--muted,#9ca8ae);font-size:12px;margin-top:12px}.foh-auth-spinner{width:14px;height:14px;border:2px solid #38434a;border-top-color:#4bd4a0;border-radius:50%;animation:fohSpin .8s linear infinite}@keyframes fohSpin{to{transform:rotate(360deg)}}
+.foh-sync-pill{border:1px solid #29343b;background:#10161a;color:#b8c2c7;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:800;white-space:nowrap;margin-left:auto;margin-right:8px;max-width:116px;overflow:hidden;text-overflow:ellipsis}
+.foh-sync-pill.synced{color:#71e1b4;border-color:rgba(75,212,160,.35)}.foh-sync-pill.offline{color:#ffc96b;border-color:rgba(255,201,107,.35)}.foh-sync-pill.syncing{color:#8fd4ff;border-color:rgba(143,212,255,.35)}.foh-sync-pill.problem{color:#ff9d9d;border-color:rgba(255,157,157,.35)}
+.foh-account-panel{margin-top:12px}.foh-account-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:8px 0}.foh-account-row+ .foh-account-row{border-top:1px solid #20282d}.foh-account-row span{color:var(--muted,#9ca8ae);font-size:11px}.foh-account-row strong{font-size:11px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:62%}
+.foh-account-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.foh-account-actions button{width:100%}
+.foh-sync-note{margin:8px 0 0;color:var(--dim,#748088);font-size:10px;line-height:1.4}
+@media(max-width:420px){.foh-auth-card{padding:20px;border-radius:18px}.foh-sync-pill{padding:6px 8px;max-width:96px}.foh-account-actions{grid-template-columns:1fr}}
