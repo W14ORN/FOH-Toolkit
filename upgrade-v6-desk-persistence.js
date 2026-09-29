@@ -1,4 +1,4 @@
-/* FOH Toolkit Prototype 1.5 — persistent console selection */
+/* FOH Toolkit Prototype 1.5.1 — persistent console selection */
 (function(){
   'use strict';
 
@@ -38,13 +38,17 @@
       if(head) head.insertAdjacentElement('afterend',note);
       else detail.prepend(note);
     }
-    note.innerHTML=`<strong>USING SAVED DESK</strong><span>${currentDeskLabel(select)} · change console from the desk button or Settings only when needed.</span>`;
+    const html=`<strong>USING SAVED DESK</strong><span>${currentDeskLabel(select)} · change console from the desk button or Settings only when needed.</span>`;
+    if(note.innerHTML!==html) note.innerHTML=html;
   }
 
   document.addEventListener('DOMContentLoaded',()=>{
     const detail=document.getElementById('presetDetail');
     if(detail){
-      new MutationObserver(()=>simplifyPresetDeskUI()).observe(detail,{childList:true,subtree:true});
+      // Only watch direct replacements of the preset-detail contents. Watching
+      // the entire subtree caused our own status-note update to retrigger the
+      // observer continuously and could stop the preset sheet from opening.
+      new MutationObserver(()=>simplifyPresetDeskUI()).observe(detail,{childList:true,subtree:false});
       simplifyPresetDeskUI();
     }
 
@@ -54,7 +58,7 @@
     // Run after the earlier upgrade scripts have written their version labels.
     setTimeout(()=>{
       const version=document.getElementById('versionText');
-      if(version)version.textContent='Prototype 1.5.0';
+      if(version)version.textContent='Prototype 1.5.1';
     },0);
   });
 })();
