@@ -53,12 +53,23 @@
     },0);
   });
 
-  // Prototype 1.6 is loaded here so older installed PWAs only need the updated
+  function loadV9(){
+    if(document.querySelector('script[data-foh-v9]'))return;
+    const s=document.createElement('script');
+    s.src='upgrade-v9-add-show-dropdown.js';
+    s.dataset.fohV9='1';
+    document.head.appendChild(s);
+  }
+
+  // Prototype 1.6+ is loaded here so older installed PWAs only need the updated
   // cached upgrade script; the main HTML remains compatible with existing installs.
   if(!document.querySelector('script[data-foh-v8]')){
     const s=document.createElement('script');
     s.src='upgrade-v8-show-wizard.js';
     s.dataset.fohV8='1';
+    s.onload=loadV9;
     document.head.appendChild(s);
+  }else{
+    loadV9();
   }
 })();
