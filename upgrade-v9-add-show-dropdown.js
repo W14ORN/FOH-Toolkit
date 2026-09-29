@@ -98,4 +98,12 @@
     const version=document.getElementById('versionText');
     if(version)version.textContent='Prototype 1.7.1';
   },150);
+
+  // Load the RTA display-speed upgrade after this compatibility layer.
+  if(!document.querySelector('script[data-foh-v10]')){
+    const s=document.createElement('script');
+    s.src='upgrade-v10-rta-speed.js';
+    s.dataset.fohV10='1';
+    document.head.appendChild(s);
+  }
 })();
