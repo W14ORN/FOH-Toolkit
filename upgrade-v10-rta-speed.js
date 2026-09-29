@@ -1,52 +1,82 @@
-/* FOH Toolkit Prototype 1.7.2 — adjustable RTA display speed */
+/* FOH Toolkit Prototype 1.7.3 — adjustable RTA display speed slider */
 (function(){
   'use strict';
 
   const SPEED_KEY='fohRtaDisplaySpeed';
-  const SPEEDS={
-    fast:{label:'Fast · 20 updates/sec',fps:20},
-    normal:{label:'Normal · 12 updates/sec',fps:12},
-    slow:{label:'Slow · 7 updates/sec',fps:7},
-    veryslow:{label:'Very slow · 4 updates/sec',fps:4}
-  };
-
+  const LEGACY_SPEEDS={fast:20,normal:12,slow:7,veryslow:4};
+  const MIN_FPS=2;
+  const MAX_FPS=30;
+  const DEFAULT_FPS=7;
   let lastDraw=0;
 
-  function currentSpeed(){
-    const key=localStorage.getItem(SPEED_KEY)||'slow';
-    return SPEEDS[key]?key:'slow';
+  function storedFps(){
+    const raw=localStorage.getItem(SPEED_KEY);
+    if(raw in LEGACY_SPEEDS){
+      const fps=LEGACY_SPEEDS[raw];
+      localStorage.setItem(SPEED_KEY,String(fps));
+      return fps;
+    }
+    const n=Number(raw);
+    return Number.isFinite(n)?Math.max(MIN_FPS,Math.min(MAX_FPS,Math.round(n))):DEFAULT_FPS;
   }
 
-  function currentFps(){return SPEEDS[currentSpeed()].fps;}
+  function currentFps(){return storedFps();}
+
+  function speedWord(fps){
+    if(fps<=4)return 'Very slow';
+    if(fps<=8)return 'Slow';
+    if(fps<=14)return 'Medium';
+    if(fps<=22)return 'Fast';
+    return 'Very fast';
+  }
 
   function installControl(){
-    if(document.getElementById('rtaSpeedSelect'))return;
+    const old=document.getElementById('rtaSpeedRow');
+    if(old)old.remove();
+    const oldHelp=document.getElementById('rtaSpeedHelp');
+    if(oldHelp)oldHelp.remove();
+
     const panel=document.querySelector('#screen-rta .controls-panel');
     if(!panel)return;
     const buttons=panel.querySelector('.button-row');
+    const fps=currentFps();
     const row=document.createElement('div');
     row.className='field-row';
     row.id='rtaSpeedRow';
-    row.innerHTML=`<label for="rtaSpeedSelect">RTA display speed</label><select id="rtaSpeedSelect">${Object.entries(SPEEDS).map(([key,v])=>`<option value="${key}" ${key===currentSpeed()?'selected':''}>${v.label}</option>`).join('')}</select>`;
+    row.style.display='block';
+    row.innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px">
+        <label for="rtaSpeedSlider">RTA display speed</label>
+        <strong id="rtaSpeedValue" style="white-space:nowrap">${fps} updates/sec</strong>
+      </div>
+      <input id="rtaSpeedSlider" type="range" min="${MIN_FPS}" max="${MAX_FPS}" step="1" value="${fps}" style="width:100%" aria-label="RTA display speed" />
+      <div style="display:flex;justify-content:space-between;margin-top:4px;color:var(--dim);font-size:10px"><span>Slower</span><span id="rtaSpeedWord">${speedWord(fps)}</span><span>Faster</span></div>`;
     if(buttons)panel.insertBefore(row,buttons);else panel.appendChild(row);
 
     const helper=document.createElement('p');
     helper.className='helper';
     helper.id='rtaSpeedHelp';
-    helper.textContent='Slow is the default so the trace is easier to read. This only slows the RTA display — Ring Out detection still runs at full speed.';
+    helper.textContent='Slide left for a steadier, easier-to-read trace or right for a faster response. Ring Out detection is not slowed down.';
     row.insertAdjacentElement('afterend',helper);
 
-    row.querySelector('select').addEventListener('change',e=>{
-      localStorage.setItem(SPEED_KEY,e.target.value);
+    const slider=row.querySelector('#rtaSpeedSlider');
+    const value=row.querySelector('#rtaSpeedValue');
+    const word=row.querySelector('#rtaSpeedWord');
+    slider.addEventListener('input',e=>{
+      const fps=Number(e.target.value);
+      localStorage.setItem(SPEED_KEY,String(fps));
+      value.textContent=`${fps} updates/sec`;
+      word.textContent=speedWord(fps);
       lastDraw=0;
-      const selected=SPEEDS[e.target.value];
-      if(typeof toast==='function')toast(`RTA display: ${selected?.label||'updated'}`);
+    });
+    slider.addEventListener('change',e=>{
+      const fps=Number(e.target.value);
+      if(typeof toast==='function')toast(`RTA: ${speedWord(fps)} · ${fps}/sec`);
     });
   }
 
-  // The original analyser drew on every browser animation frame (~60 fps).
-  // Keep the analyser itself untouched and throttle only the visual redraw.
-  // That means Ring Out remains responsive and microphone analysis is not slowed.
+  // Keep the analyser itself running normally and throttle only the drawing.
+  // Ring Out uses its own analysis loop and therefore remains full-speed.
   if(typeof drawRta==='function'&&!drawRta._fohSpeedWrapped){
     const originalDrawRta=drawRta;
     const wrapped=function(){
@@ -70,7 +100,7 @@
     installControl();
     setTimeout(()=>{
       const version=document.getElementById('versionText');
-      if(version)version.textContent='Prototype 1.7.2';
+      if(version)version.textContent='Prototype 1.7.3';
     },250);
   }
 
