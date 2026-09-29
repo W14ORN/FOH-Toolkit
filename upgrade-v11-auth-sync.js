@@ -88,7 +88,11 @@
     const loading=document.getElementById('fohAuthLoading');if(loading)loading.hidden=!busy;
   }
   function showGate(mode='login',message=''){
-    ensureGate().hidden=false;setAuthMode(mode);if(message)setAuthMessage(message);
+    ensureGate().hidden=false;setAuthMode(mode);
+    const email=document.getElementById('fohAuthEmail');
+    const known=currentUser?.email||cachedUser()?.email||'';
+    if(email&&known&&!email.value)email.value=known;
+    if(message)setAuthMessage(message);
   }
   function hideGate(){const g=document.getElementById('fohAuthGate');if(g)g.hidden=true;}
 
@@ -257,7 +261,7 @@
       const {data,error}=await sb.from('foh_user_state').select('app_state,updated_at').eq('user_id',currentUser.id).maybeSingle();
       if(error)throw error;
 
-      if(!data||local.dirty||force&&local.dirty){
+      if(!data||local.dirty){
         const payload={user_id:currentUser.id,app_state:local.snapshot,client_updated_at:local.updatedAt||nowIso()};
         const {error:upsertError}=await sb.from('foh_user_state').upsert(payload,{onConflict:'user_id'});
         if(upsertError)throw upsertError;
@@ -300,11 +304,11 @@
         const redirectTo=`${location.origin}${location.pathname}`;
         const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:redirectTo}});
         if(error)throw error;
-        if(data.session&&data.user){await establishUser(data.user,true);setAuthMessage('Account created.','success');}
+        if(data.session&&data.user){await establishUser(data.user,true);}
         else{
-          setAuthMessage('Account created. Check your email to confirm it, then return here and log in.','success');
           setAuthMode('login');
           const emailInput=document.getElementById('fohAuthEmail');if(emailInput)emailInput.value=email;
+          setAuthMessage('Account created. Check your email to confirm it, then return here and log in.','success');
         }
       }else{
         const {data,error}=await sb.auth.signInWithPassword({email,password});
@@ -333,6 +337,7 @@
     localStorage.removeItem(OFFLINE_USER_KEY);
     localStorage.removeItem(`sb-${PROJECT_REF}-auth-token`);
     localStorage.removeItem('fohShows');localStorage.removeItem('fohSubmissions');localStorage.removeItem('fohLastShowId');
+    localStorage.removeItem('fohConsole');localStorage.removeItem('fohRtaDisplaySpeed');localStorage.removeItem('fohRtaSmoothing');
     sessionStorage.removeItem('fohSessionConsole');
     location.reload();
   }
