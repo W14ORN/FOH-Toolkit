@@ -19,6 +19,7 @@
     sd16:{label:'Behringer SD16',inputs:16,outputs:8,protocol:'AES50'},
     sd8:{label:'Behringer SD8',inputs:8,outputs:8,protocol:'AES50'},
     s32:{label:'Behringer S32',inputs:32,outputs:16,protocol:'AES50'},
+    flow4vio:{label:'Behringer FLOW 4VIO',inputs:4,outputs:0,protocol:'StageConnect',note:'Adds four remote microphone preamps over StageConnect. Its headphone amplifiers are not treated as stage line outputs.'},
     dl8:{label:'Midas DL8',inputs:8,outputs:8,protocol:'AES50'},
     dl16:{label:'Midas DL16',inputs:16,outputs:8,protocol:'AES50'},
     dl32:{label:'Midas DL32',inputs:32,outputs:16,protocol:'AES50'},
@@ -30,6 +31,7 @@
     dl231:{label:'Midas DL231',inputs:24,outputs:24,protocol:'AES50 / stage I/O'},
     dl251:{label:'Midas DL251',inputs:48,outputs:16,protocol:'AES50 / stage I/O'},
     dl252:{label:'Midas DL252',inputs:16,outputs:48,protocol:'AES50 / PRO stage I/O'},
+    dl451:{label:'Midas DL451',inputs:0,outputs:0,protocol:'AES50 / PRO stage I/O',manual:true,countsLabel:'modular · up to 24 × 24',note:'DL451 accepts three DL4-series interface cards, so the installed cards determine its actual socket count.'},
 
     tio1608d:{label:'Yamaha Tio1608-D',inputs:16,outputs:8,protocol:'Dante'},
     tio1608d2:{label:'Yamaha Tio1608-D2',inputs:16,outputs:8,protocol:'Dante'},
@@ -52,8 +54,12 @@
     drack96:{label:'DiGiCo D-Rack · 96 kHz Cat5',inputs:28,outputs:8,protocol:'DiGiCo Cat5 / MADI',note:'At 96 kHz over Cat5, D-Rack supports 28 mic inputs. Automatic outputs use the 8 standard line outputs; optional output modules stay manual.'},
     drack48:{label:'DiGiCo D-Rack · 48 kHz',inputs:32,outputs:8,protocol:'DiGiCo Cat5 / MADI',note:'At 48 kHz, D-Rack supports all 32 mic inputs. Automatic outputs use the 8 standard line outputs; optional output modules stay manual.'},
     d2rack:{label:'DiGiCo D2-Rack',inputs:48,outputs:16,protocol:'MADI',note:'Uses the standard 48-input / 16-output configuration; optional output expansion stays manual.'},
-    mqrack:{label:'DiGiCo MQ-Rack',inputs:48,outputs:24,protocol:'MADI'},
+    mqrack:{label:'DiGiCo MQ-Rack',inputs:48,outputs:24,protocol:'MADI',note:'SD/Quantum compatibility requires supported application software. S21/S31 require S-Series v3.1 or later.'},
+    dqrack:{label:'DiGiCo DQ-Rack',inputs:48,outputs:24,protocol:'Dante',note:'For SD/Quantum consoles, use compatible DMI-DANTE64@96 connectivity and supported application/firmware. The final four outputs can switch to AES.'},
+    sdrack:{label:'DiGiCo SD-Rack',inputs:0,outputs:0,protocol:'MADI / Optocore',manual:true,countsLabel:'modular · up to 56 in / 56 out',note:'SD-Rack has 14 card-module slots. FOH Toolkit leaves socket patching manual because card population determines the actual I/O.'},
     sdmini:{label:'DiGiCo SD-MiNi Rack',inputs:0,outputs:0,protocol:'MADI / Optocore',manual:true,countsLabel:'modular · up to 32 I/O',note:'SD-MiNi is modular, so FOH Toolkit leaves the fitted cards and socket count manual.'},
+    sdnano:{label:'DiGiCo SD-Nano Rack',inputs:0,outputs:0,protocol:'Optocore',manual:true,countsLabel:'modular · up to 16 I/O',note:'SD-Nano has two card modules and is optical-only; fitted cards determine the exact I/O.'},
+    a168stage:{label:'DiGiCo A168 STAGE',inputs:16,outputs:8,protocol:'A3232',note:'S-Series connection requires the DMI-A3232 interface card.'},
 
     avidstage48:{label:'Avid Stage 48',inputs:48,outputs:24,protocol:'VENUE stage network'},
     avidstage16:{label:'Avid Stage 16',inputs:16,outputs:8,protocol:'VENUE stage network',note:'Automatic patch uses the 8 analogue outputs. Stage 16 also provides 4 AES output channels.'},
@@ -94,7 +100,7 @@
   const SQ_BOXES=['gx4816','dx32','dx168','dx164w','dx88p','dx012','ar2412','ar84','ab168'];
   const AVANTIS_BOXES=['gx4816','dx32','dx168','dx164w','dx88p','dx012','ar2412','ar84','ab168'];
   const X32_BOXES=['s16','sd16','sd8','s32','dl8','dl16','dl32'];
-  const HD96_BOXES=['dl151','dl152','dl153','dl154','dl155','dl231','dl251','dl252'];
+  const HD96_BOXES=['dl151','dl152','dl153','dl154','dl155','dl231','dl251','dl252','dl451'];
   const YAMAHA_RIO_ALL=['rio3224d3','rio1608d3','rio3224d2','rio1608d2','rio3224d','rio1608d'];
   const YAMAHA_TIO=['tio1608d2','tio1608d'];
 
@@ -119,7 +125,8 @@
     ].filter(Boolean),busPrefix:'Mix',mains:['Main L','Main R']};
     if(key==='ah_qu')return {local:null,boxes:boxList(['ar2412','ab168','ar84'],'dSnake Input','dSnake Output'),busPrefix:'Mix',mains:['Main L','Main R'],note:'FOH Toolkit currently uses one generic Qu profile. AR2412 / AB168 / AR84 are kept here because they are safe dSnake choices across the range. New Qu-5/6/7 models also support DX/GX, but those will be split into model-specific Qu profiles before automatic DX/GX defaults are enabled.'};
 
-    if(key==='behr_x32'||key==='behr_wing')return {local:null,boxes:boxList(X32_BOXES,'AES50-A Input','AES50-A Output'),busPrefix:'Bus',mains:['Main L','Main R']};
+    if(key==='behr_x32')return {local:null,boxes:boxList(X32_BOXES,'AES50-A Input','AES50-A Output'),busPrefix:'Bus',mains:['Main L','Main R']};
+    if(key==='behr_wing')return {local:null,boxes:[...boxList(X32_BOXES,'AES50-A Input','AES50-A Output'),boxWithPath('flow4vio','StageConnect Input','StageConnect Output')].filter(Boolean),busPrefix:'Bus',mains:['Main L','Main R'],note:'FLOW 4VIO is an input-focused StageConnect expander; its headphone amplifiers are not auto-patched as line outputs.'};
     if(key==='midas_hd96')return {local:null,boxes:boxList(HD96_BOXES,'Stage I/O Input','Stage I/O Output'),busPrefix:'Bus',mains:['Main L','Main R'],note:'Heritage-D systems can use Midas PRO/DL stage I/O through the required AES50/HyperMAC infrastructure. Confirm the venue’s AS80/DN9680/network topology before relying on a direct-port assumption.'};
 
     if(key==='yam_dm3')return {local,boxes:boxList([...YAMAHA_TIO,...YAMAHA_RIO_ALL],'Dante Input','Dante Output'),busPrefix:'Mix',mains:['Stereo L','Stereo R'],note:'DM3 Dante supports current Tio and Rio generations with compatible firmware.'};
@@ -137,7 +144,8 @@
     if(key==='sc_si')return {local:null,boxes:boxList(['sc32i','sc16i','sc32r','sc16r','sccompact','scvistage'],'MADI Input','MADI Output'),busPrefix:'Mix',mains:['Main L','Main R'],note:'Compact Stagebox is configuration-dependent and stays manual. Vi Stagebox uses its standard 64/32 build for automatic patching.'};
     if(key==='sc_vi')return {local:null,boxes:boxList(['scvistage','sccompact','sc32i','sc16i','sc32r','sc16r'],'MADI Input','MADI Output'),busPrefix:'Aux',mains:['Main L','Main R'],note:'Compact Stagebox is configuration-dependent and stays manual.'};
 
-    if(key==='digico_quantum'||key==='digico_sd'||key==='digico_s')return {local:null,boxes:boxList(['mqrack','d2rack','drack96','drack48','sdmini'],'Rack Input','Rack Output'),busPrefix:'Aux',mains:['Main L','Main R'],note:'D-Rack now has separate 96 kHz and 48 kHz entries because its available mic-input count changes with sample rate. Modular SD-MiNi stays manual.'};
+    if(key==='digico_quantum'||key==='digico_sd')return {local:null,boxes:boxList(['mqrack','dqrack','d2rack','drack96','drack48','sdrack','sdmini','sdnano'],'Rack Input','Rack Output'),busPrefix:'Aux',mains:['Main L','Main R'],note:'Fixed-I/O racks can be defaulted automatically. SD-Rack, SD-MiNi and SD-Nano remain manual because card population determines their physical sockets; DQ/MQ compatibility depends on supported console software and interface cards.'};
+    if(key==='digico_s')return {local:null,boxes:[...boxList(['mqrack','d2rack','drack96','drack48','sdrack','sdmini','sdnano'],'Rack Input','Rack Output'),boxWithPath('a168stage','A3232 Input','A3232 Output')].filter(Boolean),busPrefix:'Aux',mains:['Main L','Main R'],note:'A168 STAGE requires DMI-A3232. MQ-Rack requires S-Series v3.1 or later. Modular SD-family racks stay manual.'};
 
     if(key==='avid_s6l')return {local:null,boxes:boxList(['avidstage48','avidstage16','avidstage32','avidstage64'],'Stage Input','Stage Output'),busPrefix:'Aux',mains:['Main L','Main R'],note:'Stage 32 and Stage 64 are modular and therefore stay manual. Stage 16 automatic outputs use its 8 analogue output sockets, not its additional AES channels.'};
 
