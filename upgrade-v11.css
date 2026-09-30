@@ -19,4 +19,22 @@
 .foh-account-panel{margin-top:12px}.foh-account-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:8px 0}.foh-account-row+ .foh-account-row{border-top:1px solid #20282d}.foh-account-row span{color:var(--muted,#9ca8ae);font-size:11px}.foh-account-row strong{font-size:11px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:62%}
 .foh-account-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.foh-account-actions button{width:100%}
 .foh-sync-note{margin:8px 0 0;color:var(--dim,#748088);font-size:10px;line-height:1.4}
-@media(max-width:420px){.foh-auth-card{padding:20px;border-radius:18px}.foh-sync-pill{padding:6px 8px;max-width:96px}.foh-account-actions{grid-template-columns:1fr}}
+
+/* 1.8.1 topbar stability: only the desk chip owns the flexible gap. The sync
+   pill and settings button have fixed footprints, so changing pages or sync
+   status cannot slide the selected desk name sideways. */
+.topbar>div:first-child{flex:1 1 auto;min-width:0}
+.topbar>div:first-child .brand-row>div:last-child{min-width:0}
+.topbar>div:first-child p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .session-desk-chip{margin-left:auto;flex:0 0 110px;width:110px;text-align:center}
+.topbar .foh-sync-pill{margin-left:0;flex:0 0 96px;width:96px;max-width:96px;text-align:center}
+.topbar #settingsBtn{flex:0 0 42px}
+
+@media(max-width:420px){
+  .foh-auth-card{padding:20px;border-radius:18px}
+  .foh-account-actions{grid-template-columns:1fr}
+  .topbar{gap:5px}
+  .topbar>div:first-child p{display:none}
+  .topbar .session-desk-chip{flex-basis:82px;width:82px;max-width:82px;padding:0 6px;margin-right:2px}
+  .topbar .foh-sync-pill{flex-basis:72px;width:72px;max-width:72px;padding:6px 5px;margin-right:2px}
+}
