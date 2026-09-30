@@ -1,4 +1,4 @@
-/* FOH Toolkit Prototype 1.4 — SQ stagebox/local default patching */
+/* FOH Toolkit Prototype 1.9 — SQ stagebox/local default patching */
 (function(){
   'use strict';
 
@@ -6,14 +6,15 @@
   let activeShowId = null;
 
   const STAGEBOXES = {
-    dx168:  {label:'DX168',  inputs:16, outputs:8,  remote:true},
-    ab168:  {label:'AB168',  inputs:16, outputs:8,  remote:true},
-    ar2412: {label:'AR2412', inputs:24, outputs:12, remote:true},
     gx4816: {label:'GX4816', inputs:48, outputs:16, remote:true},
-    ar84:   {label:'AR84',   inputs:8,  outputs:4,  remote:true},
+    dx32:   {label:'DX32', inputs:0, outputs:0, remote:true, manual:true, countsLabel:'modular · up to 32 × 32'},
+    dx168:  {label:'DX168', inputs:16, outputs:8,  remote:true},
     dx164w: {label:'DX164-W',inputs:16, outputs:4,  remote:true},
     dx88p:  {label:'DX88-P', inputs:8,  outputs:8,  remote:true},
-    dx012:  {label:'DX012',  inputs:0,  outputs:12, remote:true}
+    dx012:  {label:'DX012',  inputs:0,  outputs:12, remote:true},
+    ar2412: {label:'AR2412', inputs:24, outputs:12, remote:true},
+    ar84:   {label:'AR84',   inputs:8,  outputs:4,  remote:true},
+    ab168:  {label:'AB168',  inputs:16, outputs:8,  remote:true}
   };
 
   const LOCAL_IO = {
@@ -51,6 +52,15 @@
     show.stageboxProfile=key;
     show.io=show.io||{};
 
+    if(p.manual){
+      show.channels.forEach((c,i)=>{
+        const ch=i+1,io=show.io[c.id]||{};
+        io.channel=`Input CH ${ch}`;io.source='';io.customSource='';show.io[c.id]=io;
+      });
+      show.outputs=[];
+      return {inputs:0,outputs:0,manual:true};
+    }
+
     let patchedInputs=0;
     show.channels.forEach((c,i)=>{
       const ch=i+1;
@@ -83,6 +93,7 @@
   function summary(show,key){
     const p=profileFor(show,key);
     if(!p) return '';
+    if(p.manual)return 'DX32 is a modular rack. FOH Toolkit will keep the show linked to DX32 but leave socket-level input and output patching manual so it does not guess the fitted cards.';
     const path=p.remote?'SLink':'Local XLR';
     const inText=p.inputs?`Input CH 1 → ${path} 1, CH 2 → ${path} 2, and so on up to ${p.inputs}.`:'This device is output-only, so inputs are left unpatched.';
     let outText='No physical outputs available.';
@@ -95,10 +106,11 @@
 
   function panelHTML(show){
     const selected=selectedKey(show),local=localProfile(show),p=profileFor(show,selected)||local;
-    const stageboxOptions=Object.entries(STAGEBOXES).map(([k,v])=>option(k,`${v.label} · ${v.inputs} in / ${v.outputs} out`,selected)).join('');
+    const stageboxOptions=Object.entries(STAGEBOXES).map(([k,v])=>option(k,v.manual?`${v.label} · ${v.countsLabel} · manual patch`:`${v.label} · ${v.inputs} in / ${v.outputs} out`,selected)).join('');
+    const countText=p.manual?'Modular':`${p.inputs} in · ${p.outputs} out`;
     return `<div class="panel show-config-panel stagebox-default-panel">
-      <div class="section-mini-head"><div><span class="eyebrow">I/O HARDWARE DEFAULT</span><h3>Stagebox / local patch</h3></div><span class="count-pill">${p.inputs} in · ${p.outputs} out</span></div>
-      <p class="helper no-top">Choose the I/O hardware for this show. FOH Toolkit will build the normal one-to-one input patch and a sensible output starting point automatically.</p>
+      <div class="section-mini-head"><div><span class="eyebrow">I/O HARDWARE DEFAULT</span><h3>Stagebox / local patch</h3></div><span class="count-pill">${esc(countText)}</span></div>
+      <p class="helper no-top">Choose the I/O hardware for this show. Fixed-I/O expanders get the normal one-to-one input patch and a sensible output starting point automatically; modular DX32 stays manual.</p>
       <div class="stagebox-default-row">
         <select id="stageboxProfileSelect" aria-label="Stagebox or local I/O">
           ${option('local',`${local.label} · ${local.inputs} in / ${local.outputs} out`,selected)}
@@ -143,7 +155,7 @@
     }
     const result=applyDefaults(show,next);
     persist();
-    toast(`${profileFor(show,next).label}: ${result.inputs} inputs and ${result.outputs} outputs defaulted`);
+    toast(result.manual?`${profileFor(show,next).label}: selected · patch manually`:`${profileFor(show,next).label}: ${result.inputs} inputs and ${result.outputs} outputs defaulted`);
     rerenderConsole(show);
   });
 
@@ -154,11 +166,11 @@
     if(hasProgramming(show) && !confirm('Reapply the selected hardware default? This will overwrite manual input/output patch changes.')) return;
     const key=selectedKey(show),result=applyDefaults(show,key);
     persist();
-    toast(`${profileFor(show,key).label}: default patch reapplied`);
+    toast(result.manual?`${profileFor(show,key).label}: manual patch reset`:`${profileFor(show,key).label}: default patch reapplied`);
     rerenderConsole(show);
   });
 
   document.addEventListener('DOMContentLoaded',()=>{
-    const v=$('#versionText'); if(v) v.textContent='Prototype 1.4.0';
+    const v=$('#versionText'); if(v) v.textContent='Prototype 1.9.0';
   });
 })();
