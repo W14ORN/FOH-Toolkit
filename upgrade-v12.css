@@ -1,0 +1,27 @@
+/* FOH Toolkit Prototype 1.9 — My Profile */
+.bottom-nav{grid-template-columns:repeat(6,1fr)}
+.bottom-nav button[data-nav="profile"] span{font-size:17px}
+
+/* Account status has its own Profile screen now. Keep the desk selector hard
+   pinned so the 1.8.2 topbar-stability fix cannot regress. */
+.topbar .foh-sync-pill{display:none!important}
+.topbar{padding-right:190px}
+.topbar .session-desk-chip{right:68px;width:104px;max-width:104px}
+
+.profile-identity-card{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.profile-avatar{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;flex:0 0 58px;background:var(--accent-soft);border:1px solid rgba(75,212,160,.28);color:var(--accent);font-weight:900;font-size:20px;letter-spacing:.04em}
+.profile-identity-copy{min-width:0}.profile-identity-copy h3{margin:4px 0 3px;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.profile-identity-copy p{margin:0;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile-card{margin-bottom:10px}.profile-card .field{margin-top:11px}.profile-card .field select{width:100%;max-width:none}.profile-card .primary.full{margin-top:12px}
+.profile-stat-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--line-soft)}.profile-stat-row span{font-size:11px;color:var(--muted)}.profile-stat-row strong{font-size:11px;text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:65%}
+.profile-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}.profile-actions button{width:100%}
+.profile-online{font-size:9px;font-weight:850;border-radius:99px;padding:5px 8px;border:1px solid var(--line);color:var(--muted)}.profile-online.online{color:var(--accent);border-color:rgba(75,212,160,.3);background:var(--accent-soft)}.profile-online.offline{color:var(--warn);border-color:rgba(244,180,85,.3);background:rgba(244,180,85,.07)}
+.profile-about{margin-bottom:6px}
+
+@media(max-width:420px){
+  .topbar{padding-right:150px}
+  .topbar .session-desk-chip{right:64px;width:76px;max-width:76px}
+  .bottom-nav{padding-left:4px;padding-right:4px}
+  .bottom-nav button{min-width:0}
+  .bottom-nav small{font-size:8px}
+  .profile-actions{grid-template-columns:1fr}
+}
