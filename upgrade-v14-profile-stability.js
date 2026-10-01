@@ -1,4 +1,4 @@
-/* FOH Toolkit Prototype 2.0.2 — profile stability hotfix */
+/* FOH Toolkit Prototype 2.0.3 — profile stability */
 (function(){
   'use strict';
 
@@ -15,9 +15,9 @@
 
   function syncVersion(){
     const globalVersion=document.getElementById('versionText');
-    if(globalVersion)globalVersion.textContent='Prototype 2.0.2';
+    if(globalVersion)globalVersion.textContent='Prototype 2.0.3';
     const profileVersion=document.querySelector('#fohProfileBody .profile-about .profile-stat-row strong');
-    if(profileVersion)profileVersion.textContent='Prototype 2.0.2';
+    if(profileVersion)profileVersion.textContent='Prototype 2.0.3';
   }
 
   function rememberDraft(target){
