@@ -1,10 +1,9 @@
-/* FOH Toolkit Prototype 2.0 — My Profile */
+/* FOH Toolkit Prototype 2.0.3 — My Profile */
 (function(){
   'use strict';
 
   const OFFLINE_USER_KEY='fohOfflineUser';
   const STATE_PREFIX='fohScopedState:';
-  let refreshTimer=null;
 
   function parseJson(raw,fallback=null){try{return JSON.parse(raw);}catch(_e){return fallback;}}
   function user(){return parseJson(localStorage.getItem(OFFLINE_USER_KEY),null);}
@@ -33,7 +32,9 @@
 
   function loadCss(){
     if(document.getElementById('fohProfileCss'))return;
-    const l=document.createElement('link');l.id='fohProfileCss';l.rel='stylesheet';l.href='upgrade-v12.css';document.head.appendChild(l);
+    const l=document.createElement('link');
+    l.id='fohProfileCss';l.rel='stylesheet';l.href='upgrade-v12.css';
+    document.head.appendChild(l);
   }
 
   function ensureProfileScreen(){
@@ -89,6 +90,7 @@
     const shows=Array.isArray(state?.shows)?state.shows.length:0;
     const status=syncText();
     const online=navigator.onLine?'Online':'Offline';
+
     body.innerHTML=`
       <div class="panel profile-identity-card">
         <div class="profile-avatar">${esc(initials)}</div>
@@ -117,10 +119,10 @@
       </div>
 
       <div class="panel profile-card">
-        <div class="section-mini-head"><div><span class="eyebrow">CLOUD</span><h3>Account & sync</h3></div><span class="profile-online ${navigator.onLine?'online':'offline'}">${online}</span></div>
+        <div class="section-mini-head"><div><span class="eyebrow">CLOUD</span><h3>Account & sync</h3></div><span id="profileOnlineStatus" class="profile-online ${navigator.onLine?'online':'offline'}">${online}</span></div>
         <div class="profile-stat-row"><span>Email</span><strong>${esc(u.email||'—')}</strong></div>
         <div class="profile-stat-row"><span>Sync</span><strong id="profileSyncStatus">${esc(status)}</strong></div>
-        <div class="profile-stat-row"><span>Last synced</span><strong>${esc(fmtTime(rec?.lastSyncedAt))}</strong></div>
+        <div class="profile-stat-row"><span>Last synced</span><strong id="profileLastSync">${esc(fmtTime(rec?.lastSyncedAt))}</strong></div>
         <div class="profile-stat-row"><span>Saved shows</span><strong>${shows}</strong></div>
         <div class="profile-actions"><button class="secondary" id="profileSyncNow" type="button">Sync now</button><button class="danger-button" id="profileSignOut" type="button">Sign out</button></div>
         <p class="helper">Your show data is saved on this device first. You can keep working offline after you have logged in once, then sync changes when internet returns.</p>
@@ -128,12 +130,21 @@
 
       <div class="panel profile-card profile-about">
         <span class="eyebrow">FOH TOOLKIT</span>
-        <div class="profile-stat-row"><span>Version</span><strong>Prototype 2.0.0</strong></div>
+        <div class="profile-stat-row"><span>Version</span><strong>Prototype 2.0.3</strong></div>
       </div>`;
 
     const desk=document.getElementById('profileDeskSelect');
     if(desk)desk.value=state?.console||localStorage.getItem('fohConsole')||'generic';
     bindProfileControls();
+  }
+
+  function updateLiveStatus(){
+    if(!document.getElementById('screen-profile')?.classList.contains('active'))return;
+    const rec=record();
+    const online=document.getElementById('profileOnlineStatus');
+    if(online){online.textContent=navigator.onLine?'Online':'Offline';online.className=`profile-online ${navigator.onLine?'online':'offline'}`;}
+    const sync=document.getElementById('profileSyncStatus');if(sync)sync.textContent=syncText();
+    const last=document.getElementById('profileLastSync');if(last)last.textContent=fmtTime(rec?.lastSyncedAt);
   }
 
   function saveProfile(){
@@ -160,7 +171,7 @@
       if(typeof persist==='function')persist();
     }
     if(typeof toast==='function')toast(`Default desk: ${typeof getDeskProfile==='function'?getDeskProfile(value).name:value}`);
-    setTimeout(renderProfile,30);
+    renderProfile();
   }
 
   function bindProfileControls(){
@@ -169,7 +180,7 @@
     document.getElementById('profileSyncNow')?.addEventListener('click',()=>{
       const btn=document.getElementById('fohSyncNow');
       if(btn)btn.click();else if(typeof toast==='function')toast(navigator.onLine?'Sync is reconnecting…':'Offline · changes saved');
-      setTimeout(renderProfile,500);
+      setTimeout(updateLiveStatus,650);
     });
     document.getElementById('profileSignOut')?.addEventListener('click',()=>{
       if(!confirm('Sign out of FOH Toolkit on this device?'))return;
@@ -194,17 +205,12 @@
     persist=wrapped;
   }
 
-  function refreshIfVisible(){
-    if(state?.screen==='profile'||document.getElementById('screen-profile')?.classList.contains('active'))renderProfile();
-  }
-
   function ready(){
     loadCss();ensureProfileScreen();ensureProfileNav();preserveProfileAcrossPersist();
-    const version=document.getElementById('versionText');if(version)version.textContent='Prototype 2.0.0';
-    window.addEventListener('online',()=>setTimeout(refreshIfVisible,100));
-    window.addEventListener('offline',refreshIfVisible);
-    document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshIfVisible();});
-    clearInterval(refreshTimer);refreshTimer=setInterval(refreshIfVisible,1800);
+    const version=document.getElementById('versionText');if(version)version.textContent='Prototype 2.0.3';
+    window.addEventListener('online',()=>setTimeout(updateLiveStatus,100));
+    window.addEventListener('offline',updateLiveStatus);
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateLiveStatus();});
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
