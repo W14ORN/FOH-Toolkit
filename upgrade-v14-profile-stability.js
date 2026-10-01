@@ -1,4 +1,4 @@
-/* FOH Toolkit Prototype 2.0.3 — profile stability */
+/* FOH Toolkit Prototype 2.1 — profile stability */
 (function(){
   'use strict';
 
@@ -15,9 +15,9 @@
 
   function syncVersion(){
     const globalVersion=document.getElementById('versionText');
-    if(globalVersion)globalVersion.textContent='Prototype 2.0.3';
+    if(globalVersion)globalVersion.textContent='Prototype 2.1.0';
     const profileVersion=document.querySelector('#fohProfileBody .profile-about .profile-stat-row strong');
-    if(profileVersion)profileVersion.textContent='Prototype 2.0.3';
+    if(profileVersion)profileVersion.textContent='Prototype 2.1.0';
   }
 
   function rememberDraft(target){
@@ -78,6 +78,14 @@
     syncVersion();
   }
 
+  function loadV15(){
+    if(document.querySelector('script[data-foh-v15]'))return;
+    const s=document.createElement('script');
+    s.src='upgrade-v15-library-community.js';
+    s.dataset.fohV15='1';
+    document.head.appendChild(s);
+  }
+
   function ready(){
     document.addEventListener('input',e=>{if(profileActive())rememberDraft(e.target);},true);
     document.addEventListener('change',e=>{if(profileActive())rememberDraft(e.target);},true);
@@ -99,6 +107,7 @@
     setTimeout(install,120);
     setTimeout(install,500);
     syncVersion();
+    loadV15();
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();

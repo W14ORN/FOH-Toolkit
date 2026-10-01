@@ -1,0 +1,23 @@
+/* FOH Toolkit Prototype 2.1 — library/community additions */
+.community-discovery-tools{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,.55fr) auto;gap:10px;margin:14px 0 18px;align-items:stretch}
+.community-discovery-tools .search-box{margin:0}
+.community-discovery-tools select,.community-favourites-toggle{min-height:44px}
+.community-favourites-toggle.active{border-color:#ff6cab;color:#ff8fbd;background:rgba(255,108,171,.09)}
+.community-card{position:relative}
+.community-fav-btn{position:absolute;right:10px;top:10px;z-index:3;width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(7,10,12,.82);color:#d7dde1;font-size:18px;display:grid;place-items:center;padding:0}
+.community-card.community-favourite .community-fav-btn{color:#ff6cab;border-color:rgba(255,108,171,.35)}
+.community-rating-summary{margin-top:8px;color:#f2c94c;font-size:10px;font-weight:700;letter-spacing:.02em}
+.community-detail-extras{margin:16px 0}
+.community-detail-actions{display:grid;grid-template-columns:1fr 1.35fr;gap:10px;margin-bottom:12px}
+.community-detail-actions button{width:100%}
+.community-rating-box{border:1px solid rgba(255,255,255,.09);background:#0a0f12;border-radius:14px;padding:14px}
+.community-stars{display:flex;gap:4px;margin:7px 0 4px}
+.community-stars button{border:0;background:transparent;color:#52606a;font-size:27px;line-height:1;padding:2px 3px;cursor:pointer}
+.community-stars button.selected,.community-stars button:hover{color:#f2c94c}
+.community-rating-box p{margin:5px 0 0;color:var(--muted);font-size:11px}
+#communityApproved .preset-card[hidden]{display:none!important}
+@media(max-width:720px){
+  .community-discovery-tools{grid-template-columns:1fr 1fr}
+  .community-discovery-tools .community-search{grid-column:1/-1}
+  .community-detail-actions{grid-template-columns:1fr}
+}
