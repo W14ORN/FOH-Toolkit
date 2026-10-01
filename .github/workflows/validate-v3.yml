@@ -16,7 +16,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          find . -type f -name '*.js' -not -path './node_modules/*' -print0 | while IFS= read -r -d '' file; do
+          find . -type f -name '*.js' -not -path './node_modules/*' -not -path './www/*' -print0 | while IFS= read -r -d '' file; do
             echo "Checking $file"
             node --check "$file"
           done
@@ -36,3 +36,11 @@ jobs:
           }
           console.log(`Validated ${assets.length} cached assets.`);
           NODE
+      - name: Build native web bundle
+        run: |
+          node scripts/build-native.mjs
+          test -f www/index.html
+          test -f www/privacy.html
+          test -f www/support.html
+          test -f www/modules/v3-appstore.js
+          test -f www/modules/v3-community-safety.js
