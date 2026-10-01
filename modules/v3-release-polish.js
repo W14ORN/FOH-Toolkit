@@ -15,7 +15,7 @@
       if(label==='version'&&value&&value.textContent!==VERSION)value.textContent=VERSION;
     });
 
-    document.documentElement.dataset.fohVersion='3.1.3';
+    if(document.documentElement.dataset.fohVersion!=='3.1.3')document.documentElement.dataset.fohVersion='3.1.3';
   }
 
   function isLoginMode(){
@@ -34,16 +34,21 @@
 
     const login=isLoginMode();
     if(field){
-      field.hidden=login;
-      field.style.display=login?'none':'';
-      field.setAttribute('aria-hidden',login?'true':'false');
+      if(field.hidden!==login)field.hidden=login;
+      const display=login?'none':'';
+      if(field.style.display!==display)field.style.display=display;
+      const aria=login?'true':'false';
+      if(field.getAttribute('aria-hidden')!==aria)field.setAttribute('aria-hidden',aria);
     }
     if(confirm){
-      confirm.required=!login;
-      confirm.disabled=login;
-      if(login)confirm.value='';
+      if(confirm.required===login)confirm.required=!login;
+      if(confirm.disabled!==login)confirm.disabled=login;
+      if(login&&confirm.value)confirm.value='';
     }
-    if(password)password.autocomplete=login?'current-password':'new-password';
+    if(password){
+      const autocomplete=login?'current-password':'new-password';
+      if(password.autocomplete!==autocomplete)password.autocomplete=autocomplete;
+    }
   }
 
   function settle(){
@@ -71,9 +76,7 @@
       applyAuthMode();
     },true);
 
-    const observer=new MutationObserver(()=>{
-      settle();
-    });
+    const observer=new MutationObserver(settle);
     observer.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class','hidden']});
 
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(settle,20);});
