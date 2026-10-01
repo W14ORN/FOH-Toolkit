@@ -5,6 +5,7 @@
   const SUPABASE_KEY='sb_publishable_N0iuwftuSSiMPIdsQ7dsiQ_aJe8qVzX';
   const USER_KEY='fohOfflineUser';
   const GUEST_KEY='fohGuestMode';
+  const GUEST_BACKUP='fohGuestBackup';
   const STATE_PREFIX='fohScopedState:';
   let client=null, profileObserver=null, gateObserver=null;
 
@@ -25,7 +26,14 @@
     host.appendChild(box);
   }
 
+  function backupGuestWork(){
+    if(!isGuest())return;
+    const snap={savedAt:new Date().toISOString(),shows:Array.isArray(state?.shows)?state.shows:[],submissions:Array.isArray(state?.submissions)?state.submissions:[],console:state?.console||localStorage.getItem('fohConsole')||'generic',rtaDisplaySpeed:localStorage.getItem('fohRtaDisplaySpeed')||'7',rtaSmoothing:localStorage.getItem('fohRtaSmoothing')||'0.68'};
+    if(snap.shows.length||snap.submissions.length||snap.console!=='generic')localStorage.setItem(GUEST_BACKUP,JSON.stringify(snap));
+  }
+
   function showAuth(mode='login'){
+    backupGuestWork();
     localStorage.removeItem(GUEST_KEY);
     const gate=document.getElementById('fohAuthGate');
     if(gate)gate.hidden=false;
@@ -51,13 +59,15 @@
     }
     addLegalLinks(card);
     if(isGuest())gate.hidden=true;
+    if(!gate._v31HiddenObserver){gate._v31HiddenObserver=new MutationObserver(()=>{if(isGuest()&&!gate.hidden)gate.hidden=true;});gate._v31HiddenObserver.observe(gate,{attributes:true,attributeFilter:['hidden']});}
   }
 
   function guestProfile(body){
     if(!isGuest()||!body)return false;
+    if(body.querySelector('#v31GuestLogin'))return true;
     body.innerHTML=`<div class="panel profile-identity-card"><div class="profile-avatar">G</div><div class="profile-identity-copy"><span class="eyebrow">GUEST MODE</span><h3>Local-only workspace</h3><p>No account required</p></div></div>
       <div class="panel profile-card"><div class="section-mini-head"><div><span class="eyebrow">ACCOUNT OPTIONAL</span><h3>Keep working without signing in</h3></div></div><p class="helper no-top">Presets, Shows, RTA and Ring Out work in guest mode and save on this device. Sign in only if you want cloud sync, Community posting, ratings or comments.</p><div class="profile-actions"><button class="primary" id="v31GuestLogin">Log in</button><button class="secondary" id="v31GuestSignup">Create account</button></div></div>
-      <div class="panel profile-card"><span class="eyebrow">DATA</span><h3>Your guest data stays local</h3><p class="helper">Deleting browser/app data or uninstalling before creating an account can remove guest shows and settings.</p></div>
+      <div class="panel profile-card"><span class="eyebrow">DATA</span><h3>Your guest data stays local</h3><p class="helper">Deleting browser/app data or uninstalling before creating an account can remove guest shows and settings. If you later sign in, FOH Toolkit keeps a guest backup so you can import it into the account.</p></div>
       <div class="panel profile-card profile-about"><span class="eyebrow">FOH TOOLKIT</span><div class="profile-stat-row"><span>Version</span><strong>Prototype 3.1.0</strong></div></div>`;
     body.querySelector('#v31GuestLogin')?.addEventListener('click',()=>showAuth('login'));
     body.querySelector('#v31GuestSignup')?.addEventListener('click',()=>showAuth('signup'));
@@ -66,11 +76,11 @@
   }
 
   function clearDeletedAccountLocal(uid){
-    localStorage.removeItem(USER_KEY);localStorage.removeItem(GUEST_KEY);localStorage.removeItem('fohCommunityRole');
+    localStorage.removeItem(USER_KEY);localStorage.removeItem(GUEST_KEY);localStorage.removeItem(GUEST_BACKUP);localStorage.removeItem('fohCommunityRole');
     if(uid)localStorage.removeItem(`${STATE_PREFIX}${uid}`);
     ['fohShows','fohSubmissions','fohLastShowId','fohConsole','fohRtaDisplaySpeed','fohRtaSmoothing','fohCommunityApprovedCache'].forEach(k=>localStorage.removeItem(k));
     sessionStorage.removeItem('fohSessionConsole');
-    Object.keys(localStorage).filter(k=>k.startsWith('fohCommunityFavourites:')||k.startsWith('fohOfficial')).forEach(k=>localStorage.removeItem(k));
+    Array.from({length:localStorage.length},(_,i)=>localStorage.key(i)).filter(Boolean).filter(k=>k.startsWith('fohCommunityFavourites:')||k.startsWith('fohOfficial')).forEach(k=>localStorage.removeItem(k));
   }
 
   async function deleteAccount(){
@@ -98,10 +108,25 @@
     addLegalLinks(about);
   }
 
+  function importGuestBackup(body){
+    const u=user(),backup=parse(localStorage.getItem(GUEST_BACKUP),null);if(!u?.id||!backup||!body||body.querySelector('#v31GuestImport'))return;
+    const about=body.querySelector('.profile-about');if(!about)return;
+    const card=document.createElement('div');card.id='v31GuestImport';card.className='panel profile-card';
+    const count=Array.isArray(backup.shows)?backup.shows.length:0;
+    card.innerHTML=`<div class="section-mini-head"><div><span class="eyebrow">GUEST BACKUP</span><h3>Import guest work?</h3></div></div><p class="helper no-top">A local guest backup from ${backup.savedAt?new Date(backup.savedAt).toLocaleString():'this device'} contains ${count} show${count===1?'':'s'}. Importing adds those shows to this account without replacing existing cloud shows.</p><div class="profile-actions"><button class="primary" id="v31ImportGuest">Import</button><button class="secondary" id="v31DiscardGuest">Discard backup</button></div>`;
+    body.insertBefore(card,about);
+    card.querySelector('#v31ImportGuest')?.addEventListener('click',()=>{
+      const existing=new Set((state.shows||[]).map(s=>s.id));const incoming=(backup.shows||[]).filter(s=>!existing.has(s.id));state.shows=[...(state.shows||[]),...incoming];
+      if((state.console||'generic')==='generic'&&backup.console)state.console=backup.console;
+      localStorage.removeItem(GUEST_BACKUP);if(typeof persist==='function')persist();if(typeof renderShows==='function')renderShows();toast(`${incoming.length} guest show${incoming.length===1?'':'s'} imported`);card.remove();
+    });
+    card.querySelector('#v31DiscardGuest')?.addEventListener('click',()=>{if(confirm('Discard the local guest backup?')){localStorage.removeItem(GUEST_BACKUP);card.remove();}});
+  }
+
   function decorateProfile(){
     const body=document.getElementById('fohProfileBody');if(!body)return;
     if(guestProfile(body))return;
-    accountSafetyCard(body);
+    accountSafetyCard(body);importGuestBackup(body);
     const about=body.querySelector('.profile-about');if(about)addLegalLinks(about);
   }
 
@@ -112,10 +137,14 @@
     if(body&&!profileObserver){let scheduled=false;profileObserver=new MutationObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;decorateProfile();});});profileObserver.observe(body,{childList:true,subtree:false});}
   }
 
+  function keepGuestHidden(){if(!isGuest())return;const gate=document.getElementById('fohAuthGate');if(gate)gate.hidden=true;const pill=document.getElementById('fohSyncPill');if(pill){pill.textContent='Guest · local only';pill.className='foh-sync-pill offline';}}
+
   function ready(){
     ensureGuestChoice();installObservers();decorateProfile();
     document.querySelector('[data-nav="profile"]')?.addEventListener('click',()=>setTimeout(decorateProfile,40));
-    if(isGuest()){const gate=document.getElementById('fohAuthGate');if(gate)gate.hidden=true;setTimeout(()=>{const pill=document.getElementById('fohSyncPill');if(pill){pill.textContent='Guest · local only';pill.className='foh-sync-pill offline';}},80);}
+    if(isGuest())setTimeout(keepGuestHidden,80);
+    window.addEventListener('online',()=>setTimeout(keepGuestHidden,30));
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(keepGuestHidden,30);});
     window.FOHAccount={showAuth,enterGuest,isGuest,user};
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(ready,0));else setTimeout(ready,0);
