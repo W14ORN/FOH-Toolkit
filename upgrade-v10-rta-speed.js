@@ -1,4 +1,4 @@
-/* FOH Toolkit Prototype 2.0 — adjustable RTA display speed slider */
+/* FOH Toolkit Prototype 2.0.1 — adjustable RTA display speed slider */
 (function(){
   'use strict';
 
@@ -94,11 +94,25 @@
     drawRta=wrapped;
   }
 
+  function loadV14(){
+    if(document.querySelector('script[data-foh-v14]'))return;
+    const s=document.createElement('script');
+    s.src='upgrade-v14-profile-stability.js';
+    s.dataset.fohV14='1';
+    document.head.appendChild(s);
+  }
+
   function loadV13(){
-    if(document.querySelector('script[data-foh-v13]'))return;
+    const existing=document.querySelector('script[data-foh-v13]');
+    if(existing){
+      if(document.getElementById('communityRolePanel'))loadV14();
+      else existing.addEventListener('load',loadV14,{once:true});
+      return;
+    }
     const s=document.createElement('script');
     s.src='upgrade-v13-community.js';
     s.dataset.fohV13='1';
+    s.onload=loadV14;
     document.head.appendChild(s);
   }
 
@@ -134,7 +148,7 @@
     installControl();
     setTimeout(()=>{
       const version=document.getElementById('versionText');
-      if(version)version.textContent='Prototype 2.0.0';
+      if(version)version.textContent='Prototype 2.0.1';
     },250);
     loadV11();
   }
