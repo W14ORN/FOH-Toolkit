@@ -1,0 +1,15 @@
+/* FOH Toolkit Prototype 2.0 — Community */
+.community-card{cursor:pointer}.community-card:active{transform:translateY(1px)}
+.community-approved-label{background:rgba(79,168,255,.13);color:#9fd0ff;border-color:rgba(79,168,255,.28)}
+.community-author{display:block;margin-top:8px;color:var(--dim);font-size:9px}
+.community-badge{color:#9fd0ff;border-color:rgba(79,168,255,.3);background:rgba(79,168,255,.08)}
+.community-separate-note{margin-top:12px}.community-detail-remove{width:100%;margin-top:12px}
+.community-settings-text span{white-space:pre-wrap;display:inline-block;margin-top:5px;color:var(--text)}
+.community-my-submissions{margin-top:12px}.community-submission-heading{margin-top:18px}.community-status{font-size:9px;font-weight:850;border:1px solid var(--line);border-radius:99px;padding:5px 8px}.community-status.pending{color:#f3c76b;border-color:rgba(243,199,107,.28)}.community-status.rejected{color:#ff9696;border-color:rgba(255,150,150,.28)}
+.community-admin-head{margin:4px 0 12px}.community-admin-head h3{margin:5px 0}.community-admin-head p{margin:0;color:var(--muted);font-size:11px;line-height:1.45}
+.community-review-card h3{margin:6px 0}.community-review-card p{color:var(--muted);font-size:11px;line-height:1.5}.community-review-card pre{white-space:pre-wrap;color:#c8d0d5;background:#090d10;padding:10px;border-radius:10px;font-size:10px;line-height:1.45}
+.community-manage-heading{margin-top:22px}.danger-mini{color:#ff9a9a!important;border-color:rgba(255,120,120,.24)!important}
+.role-badge{font-size:9px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;border-radius:99px;padding:5px 8px;border:1px solid var(--line);color:var(--muted)}.role-badge.role-owner{color:#f4c66f;border-color:rgba(244,198,111,.32);background:rgba(244,198,111,.07)}.role-badge.role-admin{color:#9fd0ff;border-color:rgba(79,168,255,.3);background:rgba(79,168,255,.07)}.role-badge.role-member{color:var(--muted)}
+.community-owner-tools{margin-top:12px;padding-top:12px;border-top:1px solid var(--line-soft)}.community-admin-add{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:6px}.community-admin-add input{width:100%;min-width:0}.community-admin-row h4{text-transform:none}.community-admin-row p{text-transform:capitalize}
+#screen-community [data-community-tab][hidden],#screen-community [data-community-pane][hidden]{display:none!important}
+@media(max-width:420px){.community-admin-add{grid-template-columns:1fr}.community-admin-add button{width:100%}}

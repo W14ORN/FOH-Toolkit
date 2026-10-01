@@ -1,4 +1,4 @@
-/* FOH Toolkit Prototype 1.9 — adjustable RTA display speed slider */
+/* FOH Toolkit Prototype 2.0 — adjustable RTA display speed slider */
 (function(){
   'use strict';
 
@@ -75,8 +75,6 @@
     });
   }
 
-  // Keep the analyser itself running normally and throttle only the drawing.
-  // Ring Out uses its own analysis loop and therefore remains full-speed.
   if(typeof drawRta==='function'&&!drawRta._fohSpeedWrapped){
     const originalDrawRta=drawRta;
     const wrapped=function(){
@@ -96,11 +94,25 @@
     drawRta=wrapped;
   }
 
+  function loadV13(){
+    if(document.querySelector('script[data-foh-v13]'))return;
+    const s=document.createElement('script');
+    s.src='upgrade-v13-community.js';
+    s.dataset.fohV13='1';
+    document.head.appendChild(s);
+  }
+
   function loadV12(){
-    if(document.querySelector('script[data-foh-v12]'))return;
+    const existing=document.querySelector('script[data-foh-v12]');
+    if(existing){
+      if(document.getElementById('screen-profile'))loadV13();
+      else existing.addEventListener('load',loadV13,{once:true});
+      return;
+    }
     const s=document.createElement('script');
     s.src='upgrade-v12-profile.js';
     s.dataset.fohV12='1';
+    s.onload=loadV13;
     document.head.appendChild(s);
   }
 
@@ -122,7 +134,7 @@
     installControl();
     setTimeout(()=>{
       const version=document.getElementById('versionText');
-      if(version)version.textContent='Prototype 1.9.0';
+      if(version)version.textContent='Prototype 2.0.0';
     },250);
     loadV11();
   }

@@ -1,4 +1,4 @@
-/* FOH Toolkit Prototype 1.9 — My Profile */
+/* FOH Toolkit Prototype 2.0 — My Profile */
 (function(){
   'use strict';
 
@@ -128,7 +128,7 @@
 
       <div class="panel profile-card profile-about">
         <span class="eyebrow">FOH TOOLKIT</span>
-        <div class="profile-stat-row"><span>Version</span><strong>Prototype 1.9.0</strong></div>
+        <div class="profile-stat-row"><span>Version</span><strong>Prototype 2.0.0</strong></div>
       </div>`;
 
     const desk=document.getElementById('profileDeskSelect');
@@ -200,9 +200,7 @@
 
   function ready(){
     loadCss();ensureProfileScreen();ensureProfileNav();preserveProfileAcrossPersist();
-    // Account/sync now lives in My Profile. Keep the legacy settings controls as
-    // the underlying compatibility hooks, but the top status pill is hidden by CSS.
-    const version=document.getElementById('versionText');if(version)version.textContent='Prototype 1.9.0';
+    const version=document.getElementById('versionText');if(version)version.textContent='Prototype 2.0.0';
     window.addEventListener('online',()=>setTimeout(refreshIfVisible,100));
     window.addEventListener('offline',refreshIfVisible);
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshIfVisible();});
