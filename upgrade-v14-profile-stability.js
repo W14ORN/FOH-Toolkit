@@ -1,4 +1,4 @@
-/* FOH Toolkit Prototype 2.1 — profile stability */
+/* FOH Toolkit Prototype 3.0 — profile stability + module bootstrap */
 (function(){
   'use strict';
 
@@ -15,13 +15,13 @@
 
   function syncVersion(){
     const globalVersion=document.getElementById('versionText');
-    if(globalVersion)globalVersion.textContent='Prototype 2.1.0';
+    if(globalVersion)globalVersion.textContent='Prototype 3.0.0';
     const profileVersion=document.querySelector('#fohProfileBody .profile-about .profile-stat-row strong');
-    if(profileVersion)profileVersion.textContent='Prototype 2.1.0';
+    if(profileVersion)profileVersion.textContent='Prototype 3.0.0';
   }
 
   function rememberDraft(target){
-    if(!target?.id||!['profileDisplayName','profileCompany','profileRole','profileDeskSelect','communityAdminEmail'].includes(target.id))return;
+    if(!target?.id||!['profileDisplayName','profileCompany','profileRole','profileDeskSelect','communityAdminEmail','v3VerifyEmail','v3VerifyLabel'].includes(target.id))return;
     draftFields.set(target.id,target.value);
   }
 
@@ -78,11 +78,21 @@
     syncVersion();
   }
 
+  function loadV3(){
+    if(document.querySelector('script[data-foh-v3-bootstrap]'))return;
+    const s=document.createElement('script');
+    s.src='modules/v3-bootstrap.js';
+    s.dataset.fohV3Bootstrap='1';
+    document.head.appendChild(s);
+  }
+
   function loadV15(){
-    if(document.querySelector('script[data-foh-v15]'))return;
+    const existing=document.querySelector('script[data-foh-v15]');
+    if(existing){setTimeout(loadV3,120);return;}
     const s=document.createElement('script');
     s.src='upgrade-v15-library-community.js';
     s.dataset.fohV15='1';
+    s.onload=loadV3;
     document.head.appendChild(s);
   }
 

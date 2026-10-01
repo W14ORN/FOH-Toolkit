@@ -1,0 +1,38 @@
+name: Validate FOH Toolkit
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          find . -type f -name '*.js' -not -path './node_modules/*' -print0 | while IFS= read -r -d '' file; do
+            echo "Checking $file"
+            node --check "$file"
+          done
+      - name: Check service worker assets exist
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const text = fs.readFileSync('sw.js','utf8');
+          const match = text.match(/const ASSETS = \[(.*?)\];/s);
+          if (!match) throw new Error('Could not find ASSETS in sw.js');
+          const assets = [...match[1].matchAll(/'([^']+)'/g)].map(m => m[1]);
+          const missing = assets.filter(p => p !== './' && !fs.existsSync(p.replace(/^\.\//,'')));
+          if (missing.length) {
+            console.error('Missing service-worker assets:', missing);
+            process.exit(1);
+          }
+          console.log(`Validated ${assets.length} cached assets.`);
+          NODE
