@@ -5,6 +5,7 @@
   const KEY='sb_publishable_N0iuwftuSSiMPIdsQ7dsiQ_aJe8qVzX';
   const USER_KEY='fohOfflineUser';
   const BLOCK_LABELS_KEY='fohBlockedCommunityAuthors';
+  const AUTHOR_MAP_KEY='fohCommunityPresetAuthors';
   let client=null,blocked=new Set(),authorLabels={},activePresetId=null,presetAuthors=new Map(),detailObserver=null,profileObserver=null;
 
   function parse(raw,fallback=null){try{return JSON.parse(raw);}catch(_e){return fallback;}}
@@ -13,6 +14,8 @@
   function isAdmin(){return ['admin','owner'].includes(role());}
   function db(){if(client)return client;if(!window.supabase?.createClient)return null;client=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:false,detectSessionInUrl:false}});return client;}
   function saveLabels(){localStorage.setItem(BLOCK_LABELS_KEY,JSON.stringify(authorLabels));}
+  function loadAuthorMap(){const raw=parse(localStorage.getItem(AUTHOR_MAP_KEY),{})||{};presetAuthors=new Map(Object.entries(raw));}
+  function saveAuthorMap(){localStorage.setItem(AUTHOR_MAP_KEY,JSON.stringify(Object.fromEntries(presetAuthors)));}
 
   async function loadSafetyData(){
     const u=user(),c=db();if(!u?.id||!c||!navigator.onLine)return;
@@ -23,8 +26,8 @@
       ]);
       if(be)throw be;if(pe)throw pe;
       blocked=new Set((blocks||[]).map(x=>String(x.blocked_id)));
-      presetAuthors=new Map((presets||[]).map(x=>[String(x.id),{id:x.created_by?String(x.created_by):null,name:x.author_name||'Community engineer'}]));
-      filterBlockedCards();decorateDetail();decorateProfile();if(isAdmin())loadPendingComments();
+      (presets||[]).forEach(x=>presetAuthors.set(String(x.id),{id:x.created_by?String(x.created_by):null,name:x.author_name||'Community engineer'}));
+      saveAuthorMap();filterBlockedCards();decorateDetail();decorateProfile();if(isAdmin())loadPendingComments();
     }catch(err){console.warn('Community safety load failed',err);}
   }
 
@@ -107,8 +110,8 @@
   }
 
   function ready(){
-    authorLabels=parse(localStorage.getItem(BLOCK_LABELS_KEY),{})||{};
-    installObservers();loadSafetyData();
+    authorLabels=parse(localStorage.getItem(BLOCK_LABELS_KEY),{})||{};loadAuthorMap();
+    installObservers();filterBlockedCards();loadSafetyData();
     document.querySelector('[data-nav="profile"]')?.addEventListener('click',()=>setTimeout(decorateProfile,80));
     document.querySelector('[data-community-tab="review"]')?.addEventListener('click',()=>setTimeout(loadPendingComments,80));
     window.addEventListener('online',loadSafetyData);
