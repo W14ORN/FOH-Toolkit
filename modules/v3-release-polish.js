@@ -1,8 +1,8 @@
-/* FOH Toolkit 3.1.3 — release polish: stable version display + login form cleanup */
+/* FOH Toolkit 3.1.4 — release polish: stable version display + login form cleanup */
 (function(){
   'use strict';
 
-  const VERSION='Prototype 3.1.3';
+  const VERSION='Prototype 3.1.4';
   window.FOH_VERSION=VERSION;
 
   function applyVersion(){
@@ -15,7 +15,7 @@
       if(label==='version'&&value&&value.textContent!==VERSION)value.textContent=VERSION;
     });
 
-    if(document.documentElement.dataset.fohVersion!=='3.1.3')document.documentElement.dataset.fohVersion='3.1.3';
+    if(document.documentElement.dataset.fohVersion!=='3.1.4')document.documentElement.dataset.fohVersion='3.1.4';
   }
 
   function isLoginMode(){
@@ -72,7 +72,6 @@
     });
 
     document.getElementById('fohAuthForm')?.addEventListener('submit',()=>{
-      // Login never needs a confirmation password. Keep confirmation scoped to account creation only.
       applyAuthMode();
     },true);
 
