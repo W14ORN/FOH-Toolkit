@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#005EB8" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Sweet Guesser" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icon.svg" />
+<meta name="color-scheme" content="light" />
+<title>Sweet Guesser — The Sweet Count Challenge</title>
+<style>
+:root {
+  --nhs-blue: #005EB8;
+  --nhs-dark: #003087;
+  --nhs-bright: #0072CE;
+  --nhs-pale: #e8f3fb;
+  --ink: #102a43;
+  --muted: #627b90;
+  --border: #d8e5ef;
+  --success: #007f3b;
+  --danger: #b42318;
+  --surface: #fff;
+  --shadow: 0 34px 75px rgba(9, 55, 112, .15), 0 4px 12px rgba(9,55,112,.04);
+}
+* { box-sizing: border-box; }
+html { min-height: 100%; }
+body { min-width: 320px; min-height: 100vh; margin: 0; font-family: 'Segoe UI', Arial, sans-serif; color: var(--ink); background: radial-gradient(ellipse at 12% 3%,#d7edff 0%,transparent 40%),radial-gradient(ellipse at 94% 88%,#dcecff 0%,transparent 46%),#f4f8fc; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 3px solid #ffcb05; outline-offset: 3px; }
+button:disabled { cursor: not-allowed; opacity: .55; }
+.topbar { height: 76px; background: var(--nhs-dark); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(20px, 4.5vw, 78px); box-shadow: 0 6px 15px rgba(0, 48, 135, .1); }
+.brand { display:flex; align-items:center; gap: 12px; font-weight: 850; letter-spacing: -.035em; font-size: 24px; user-select: none; }
+.brand-icon { width: 43px; height: 43px; background: #fff; color:var(--nhs-blue); display:grid;place-items:center; font-weight: 900; font-size: 22px; border-radius: 11px; letter-spacing: -.085em; box-shadow: 0 3px 0 rgba(255,255,255,.12); }
+.brand em { font-style:normal;color:#73d9ff }
+.top-controls { display:flex; align-items:center; gap: 10px; }
+.icon-btn { border:1px solid rgba(255,255,255,.27); display:flex; gap:10px; align-items:center; justify-content:center; background:rgba(255,255,255,.11); color:white; font-weight: 700; border-radius: 11px; min-height:42px; padding: 0 17px; transition: background .15s ease,transform .15s ease; }
+.icon-btn:hover { background:rgba(255,255,255,.2); transform:translateY(-1px); }
+.icon-btn svg { width:18px;height:18px;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round; }
+.page { max-width: 1240px; margin: 0 auto; padding: clamp(25px, 4.4vh, 50px) 27px 18px; }
+.eyebrow { display:inline-flex; align-items:center; gap:9px; color: var(--nhs-blue); font-size:12px; font-weight:900; letter-spacing:.15em; }
+.eyebrow::before { content:''; background:var(--nhs-bright); width: 21px; height:3px; border-radius:5px; }
+.page-intro { margin-bottom: 24px; display:flex; align-items:flex-end; justify-content:space-between; gap:18px; }
+.page-intro h1 { margin: 9px 0 0; font-size:clamp(24px,3vw,35px); letter-spacing:-.048em; line-height: 1.1; font-weight:850; }
+.page-intro p { margin:0 0 4px; color:var(--muted); font-weight:600; font-size:14px; text-align:right; }
+.game { display:grid; grid-template-columns: .90fr 1.1fr; background:var(--surface); border-radius:26px; box-shadow:var(--shadow); overflow:hidden; min-height:600px; border:1px solid rgba(216,229,239,.58); }
+.promo { background: linear-gradient(152deg, #0072CE 0%, #005EB8 49%, #003087 100%); position:relative; padding: 39px 43px 23px; overflow: hidden; color:white; display:flex; flex-direction:column; }
+.promo::before { content:''; position:absolute; width:330px;height:330px;border-radius:50%;border: 70px solid rgba(255,255,255,.035); right:-130px;top:-170px; }
+.promo::after { content:''; position:absolute; width:370px;height:370px;border-radius:50%;border: 50px solid rgba(255,255,255,.035); left:-200px;bottom:-145px; }
+.promo .tag { display:inline-flex; align-items:center; align-self:flex-start; border:1px solid rgba(255,255,255,.38);background:rgba(255,255,255,.12);border-radius:20px; padding:8px 14px;color:#fff;font-size:11px;font-weight:850;letter-spacing:.1em;z-index:1; }
+.promo h2 { margin:22px 0 13px; font-size:clamp(38px, 4vw,56px); line-height:1.02; letter-spacing:-.065em; font-weight:900;max-width: 400px; z-index:1; }
+.promo h2 span { color: #8ee8ff; }
+.promo .subheading { margin:0; max-width:320px; color:#e2f4ff; font-size:15px; line-height:1.58; font-weight:500; z-index:1; }
+.jar-stage { flex:1; min-height:265px; display:flex; align-items:center; justify-content:center; position:relative; z-index:1; margin-top:5px; }
+.jar-stage::before { content:'';position:absolute;bottom:21px;left:50%;transform:translateX(-50%);width:300px;height:40px;border-radius:50%;background:rgba(0,29,80,.26);filter:blur(16px); }
+.jar { width: min(270px, 90%); height: 285px; filter:drop-shadow(0 11px 15px rgba(0,28,81,.24)); animation:float 5s ease-in-out infinite; }
+@keyframes float { 0%,100% { transform:translateY(2px) rotate(-2deg); } 50% { transform:translateY(-6px) rotate(1deg); } }
+.sparkle { position:absolute;color:#d6efff;font-size:21px;opacity:.8; }
+.sparkle.one { top:49px;left:13%;} .sparkle.two {right:15%;top:81px;font-size:32px;} .sparkle.three {bottom:52px;right:8%;font-size:15px;}
+.promo-note { margin:auto 0 0;z-index:1;color:#ccedff;font-size:12px; font-weight:550; text-align:center; }
+.play { padding:clamp(35px,4.8vw,61px); display:flex;flex-direction:column;justify-content:center; min-width:0; }
+.step { display:flex;gap:9px;align-items:center; color:var(--nhs-blue);font-weight:850;font-size:12px;letter-spacing:.125em; }
+.step .step-num { background:#e4f3ff;width:25px;height:25px;display:grid;place-items:center;border-radius:7px;font-weight:900;letter-spacing:0; }
+.play h2 { color:#112b48; font-size:clamp(31px,3.2vw,43px); font-weight:900;letter-spacing:-.055em;line-height:1.13;margin:18px 0 12px; }
+.description { font-size:16px;line-height:1.65;margin:0 0 31px; color:#637b90;max-width:390px; }
+.description strong { color:#234566; }
+#guessForm label { font-size:13px;display:block;font-weight:850;letter-spacing:.02em;margin-bottom:11px; }
+.input-wrap { display:flex;align-items:center;background:#f8fbff;border:2px solid #bed4e6;border-radius:14px; overflow:hidden; transition:border-color .15s,box-shadow .15s; }
+.input-wrap:focus-within { border-color:var(--nhs-blue);box-shadow:0 0 0 5px rgba(0,94,184,.10); }
+#guessInput { flex:1;min-width:0;height:79px;padding:0 24px;border:0;outline:none;font-size:38px;font-weight:800;letter-spacing:-.035em;color:var(--nhs-dark);background:transparent;font-variant-numeric:tabular-nums; }
+#guessInput::placeholder { color:#9eb1c1;font-weight:450; }
+.input-unit { font-size:14px;font-weight:850;color:#6a869d;padding:0 23px 0 4px; }
+.guess-btn { border:0;background:var(--nhs-blue);color:white;width:100%;height:69px;margin-top:16px;border-radius:13px;font-size:18px;font-weight:850;letter-spacing:-.015em;display:flex;align-items:center;justify-content:center;gap:13px;box-shadow:0 7px 15px rgba(0,94,184,.16);transition:background .16s,transform .16s,box-shadow .16s; }
+.guess-btn:hover { background:var(--nhs-dark);box-shadow:0 10px 19px rgba(0,94,184,.22);transform:translateY(-1px); }
+.guess-btn:active { transform:translateY(0); }
+.guess-btn svg { width:20px; height:20px;stroke:#fff; stroke-width:2.5; fill:none;stroke-linejoin:round; stroke-linecap:round; }
+.result { margin-top:27px;border-radius:14px;background:#f1f7fc;border:1px solid #e0ebf4;padding:17px 19px;display:flex;gap:13px;align-items:center;min-height:94px;transition:background .2s ease,border-color .2s ease; }
+.result-icon { width:42px;height:42px;flex-shrink:0;display:grid;place-items:center;border-radius:13px;background:#dfeffc;color:var(--nhs-blue);font-size:21px;font-weight:850; }
+.result-title { font-weight:900;font-size:16px;margin:0 0 3px;letter-spacing:-.018em; }
+.result-copy { color:#677d91;font-size:12.8px;margin:0;line-height:1.4; }
+.result.failed { background:#fff2f1;border-color:#ffd4cf; }
+.result.failed .result-icon { background:#ffe0dc;color:var(--danger); }
+.result.failed .result-title { color:#b42318;font-size:20px;letter-spacing:-.02em;line-height:1.2; }
+.result.failed .result-copy { color:#96453f; }
+.result.won { background:#edfcf2;border-color:#bce9ce; }
+.result.won .result-icon {background:#d2f1df;color:var(--success);}
+.result.won .result-title {color:var(--success);font-size:18px;}
+.result.invalid {background:#fff8ea;border-color:#f6dfaa;}
+.result.invalid .result-icon {background:#fff0d0;color:#8b5c00;}
+.stats { margin-top:19px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap; }
+.stat { color:var(--muted);font-weight:600;font-size:12px; } .stat strong {color:#174c7c;font-size:16px;}
+.rule { display:flex;align-items:center;gap:7px;font-size:12px;font-weight:650;color:#72879a; }
+.rule svg {width:14px;height:14px;stroke:var(--nhs-blue);fill:none;stroke-width:2.5;}
+.footer {text-align:center;margin:21px 0 9px;font-size:12px;color:#7b91a3;font-weight:550;}
+#confetti { position:fixed;inset:0;width:100%;height:100%;z-index:115;pointer-events:none; }
+.backdrop { position:fixed;inset:0;z-index:105;background:rgba(6,32,66,.67);display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(6px); }
+.backdrop[hidden] { display:none !important; }
+.modal { background:white;border-radius:24px; width:min(100%,490px);box-shadow:0 27px 100px rgba(0,18,55,.34);max-height:calc(100vh - 42px);overflow-y:auto; }
+.modal-header { padding:31px 33px 22px; background:linear-gradient(135deg,#005EB8,#003087);color:#fff;position:relative; }
+.modal-header .modal-label { display:inline-block;font-size:11px;letter-spacing:.15em;font-weight:850;color:#8ee8ff;margin-bottom:11px; }
+.modal-header h3 {font-size:29px;letter-spacing:-.055em;line-height:1.1;margin:0 0 9px;font-weight:900;}
+.modal-header p {font-size:13.5px;line-height:1.55;color:#e4f1ff;margin:0;}
+.close-modal { position:absolute;top:15px;right:15px;width:33px;height:33px;border:1px solid rgba(255,255,255,.35);border-radius:10px;color:#fff;background:rgba(255,255,255,.08);font-size:23px;line-height:1; }
+.modal-main { padding:25px 33px 31px; }
+.field { margin-bottom:19px; }
+.field label {font-size:13px;font-weight:800;display:block;margin-bottom:8px;color:#24435f;}
+.field input {width:100%;height:53px;border:1.7px solid #bfd2e3;border-radius:11px;padding:0 15px;font-size:18px;font-weight:700;color:var(--nhs-dark);background:#f9fcff;}
+.field input:focus {outline:none;border-color:var(--nhs-blue);box-shadow:0 0 0 3px rgba(0,94,184,.13);}
+.field small {display:block;margin-top:7px;font-size:11.5px;color:#71879a;line-height:1.5;}
+.modal-action {width:100%;border:0;border-radius:11px;background:var(--nhs-blue);color:#fff;font-size:16px;font-weight:850;min-height:54px;margin-top:5px;}
+.modal-action:hover {background:var(--nhs-dark)}
+.modal-link {background:none;border:0;color:var(--nhs-blue);font-size:12px;font-weight:800;padding:11px 0 0;display:block;margin:auto;text-decoration:underline;text-underline-offset:2px;}
+.error-text {color:#b42318;font-weight:700;font-size:12px;min-height:17px;margin:2px 0 8px;}
+.secondary-action {background:#edf4fb;color:var(--nhs-blue);border:0;border-radius:10px;padding:12px 16px;font-weight:850;margin-top:12px;width:100%;}
+.secondary-action:hover {background:#dcecff;}
+.notice {border-left:3px solid #f4bc3b;background:#fff9ea;padding:10px 12px;margin-bottom:19px;color:#70581e;font-size:12px;line-height:1.55;}
+.winner-backdrop {position:fixed;inset:0;background:rgba(0,34,83,.74);z-index:95;display:flex;justify-content:center;align-items:center;padding:20px;backdrop-filter:blur(8px);}
+.winner-backdrop[hidden] {display:none!important;}
+.winner-card { width:min(100%,570px);border-radius:28px;background:white;box-shadow:0 33px 95px rgba(0,18,55,.35);padding:45px 34px 36px;text-align:center;position:relative;overflow:hidden;animation:winnerPop .45s cubic-bezier(.15,1.5,.35,1); }
+.winner-card::before {content:'';height:11px;position:absolute;top:0;left:0;right:0;background:linear-gradient(90deg,#003087,#005EB8,#00A9CE);}
+@keyframes winnerPop {from {opacity:0;transform:translateY(30px) scale(.92);}to{opacity:1;transform:translateY(0) scale(1);}}
+.trophy {width:110px;height:110px;border-radius:32px;background:#e7f7ef;display:grid;place-items:center;font-size:62px;margin:0 auto 19px;}
+.winner-eyebrow {font-size:12px;letter-spacing:.18em;color:var(--nhs-blue);font-weight:900;}
+.winner-card h2 {font-size:clamp(24px,4vw,43px);line-height:1.08;letter-spacing:-.05em;color:var(--nhs-dark);margin:13px auto 12px;font-weight:900;text-align:center;max-width:100%;overflow-wrap:break-word;text-wrap:balance;}
+.winner-card p {font-size:16px;color:#5d7389;line-height:1.6;margin:0 auto 27px;max-width:420px;}
+.winner-card p strong {color:var(--success);}
+.winner-card.loss .trophy {background:#fff0ee;color:var(--danger);}
+.winner-card.loss .winner-eyebrow {color:var(--danger);}
+.winner-card.loss p strong {color:var(--danger);}
+.winner-close {width:100%;border:0;border-radius:13px;min-height:59px;font-size:16px;font-weight:850;color:white;background:var(--nhs-blue);}
+.winner-close:hover {background:var(--nhs-dark);}
+@media(max-width:850px) { .game{grid-template-columns:1fr;}.promo{min-height:350px;padding:29px 32px;}.promo h2{font-size:40px;margin:16px 0 6px;}.jar-stage{position:absolute;right:10px;bottom:17px;width:210px;height:220px;min-height:0;opacity:.72;}.jar{height:218px;}.promo .subheading{max-width:49%;}.promo-note{display:none;}.play{padding:35px;}.page-intro p{display:none;}.game{min-height:auto;} }
+@media(max-width:550px) { .topbar{padding:0 17px;height:70px;}.brand{font-size:19px;}.brand-icon{width:36px;height:36px;font-size:17px;}.icon-btn{padding:0 12px;min-height:38px;gap:5px;}.icon-btn .btn-label{display:none;}.page{padding:24px 12px 10px;}.page-intro{padding:0 9px;}.page-intro h1{font-size:27px;}.game{border-radius:21px;}.promo{min-height:290px;padding:26px 25px;}.promo h2{font-size:38px;max-width:255px;}.promo .subheading{max-width:62%;font-size:12px;}.jar-stage{width:155px;right:-5px;bottom:1px;opacity:.68;}.jar{height:180px;}.play{padding:33px 22px 28px;}.play h2{font-size:35px;}.description{margin-bottom:23px;}.modal-header{padding:27px 24px 21px;}.modal-main{padding:23px 24px 26px;}.winner-card{padding:42px 23px 30px;}.winner-card h2{font-size:clamp(21px,5.8vw,30px);letter-spacing:-.05em;} }
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand" aria-label="Sweet Guesser"><span class="brand-icon" aria-hidden="true">SG</span><span>SWEET <em>GUESSER</em></span></div>
+  <div class="top-controls">
+    <button class="icon-btn" id="soundToggle" type="button" aria-label="Turn sound on" title="Sound on/off">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path id="soundGlyph" d="M16 9l5 6m0-6-5 6"/></svg><span class="btn-label" id="soundText">Sound off</span>
+    </button>
+    <button class="icon-btn" id="organiserBtn" type="button" title="Organiser settings">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg><span class="btn-label">Organiser</span>
+    </button>
+  </div>
+</header>
+<main class="page">
+  <div class="page-intro"><div><span class="eyebrow">THE SWEET COUNT CHALLENGE</span><h1>One jar. One correct answer.</h1></div><p>Have a guess. See if you're the winner.</p></div>
+  <section class="game" aria-label="Sweet guessing game">
+    <div class="promo">
+      <span class="tag">✦ &nbsp; GUESS TO WIN</span>
+      <h2>HOW MANY <span>SWEETS</span> ARE IN THE JAR?</h2>
+      <p class="subheading">Think you've got the magic number? There's only one way to find out.</p>
+      <div class="jar-stage" aria-hidden="true">
+        <span class="sparkle one">✦</span><span class="sparkle two">✧</span><span class="sparkle three">✦</span>
+        <svg class="jar" viewBox="0 0 270 290" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Decorative sweet jar illustration">
+          <defs>
+            <clipPath id="jarclip"><path d="M60 64 Q57 75 47 83 Q30 101 33 128 L44 247 Q46 270 67 270 H203 Q224 270 226 247 L237 128 Q239 101 222 83 Q212 75 210 64Z"/></clipPath>
+            <linearGradient id="glass" x1="0" x2="1"><stop stop-color="#fff" stop-opacity=".31"/><stop offset=".35" stop-color="#fff" stop-opacity=".06"/><stop offset="1" stop-color="#fff" stop-opacity=".26"/></linearGradient>
+          </defs>
+          <ellipse cx="135" cy="269" rx="96" ry="11" fill="#002057" opacity=".21"/>
+          <path d="M60 64 Q57 75 47 83 Q30 101 33 128 L44 247 Q46 270 67 270 H203 Q224 270 226 247 L237 128 Q239 101 222 83 Q212 75 210 64Z" fill="#dff4ff" opacity=".27" stroke="#e3f7ff" stroke-width="5"/>
+          <g clip-path="url(#jarclip)">
+            <g stroke="#fff" stroke-opacity=".58" stroke-width="3">
+              <circle cx="77" cy="235" r="27" fill="#f65487"/><circle cx="123" cy="241" r="27" fill="#ffc14c"/><circle cx="172" cy="241" r="27" fill="#9b78f5"/><circle cx="217" cy="229" r="27" fill="#58d7c7"/>
+              <circle cx="51" cy="201" r="26" fill="#a4ed75"/><circle cx="101" cy="198" r="28" fill="#9d7cff"/><circle cx="150" cy="201" r="26" fill="#f56c68"/><circle cx="202" cy="192" r="26" fill="#ffca51"/><circle cx="242" cy="205" r="24" fill="#ee74c5"/>
+              <circle cx="77" cy="160" r="28" fill="#ffca55"/><circle cx="125" cy="162" r="27" fill="#4bd0be"/><circle cx="176" cy="157" r="27" fill="#ff719c"/><circle cx="216" cy="154" r="23" fill="#9b7df6"/>
+              <circle cx="50" cy="126" r="26" fill="#ee7bc3"/><circle cx="102" cy="118" r="29" fill="#fa7d64"/><circle cx="153" cy="117" r="25" fill="#a0e976"/><circle cx="201" cy="115" r="28" fill="#59c9f8"/>
+            </g>
+            <g fill="none" stroke="#fff" stroke-width="5" opacity=".4" stroke-linecap="round"><path d="m91 220 7 4"/><path d="m138 179 8 3"/><path d="m182 143 7 3"/><path d="m71 139 7 3"/><path d="m117 91 9 3"/></g>
+            <path d="M60 64 Q57 75 47 83 Q30 101 33 128 L44 247 Q46 270 67 270 H203 Q224 270 226 247 L237 128 Q239 101 222 83 Q212 75 210 64Z" fill="url(#glass)"/>
+            <path d="M51 108 Q42 131 53 197" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="8" stroke-linecap="round"/>
+          </g>
+          <path d="M60 64 Q57 75 47 83 Q30 101 33 128 L44 247 Q46 270 67 270 H203 Q224 270 226 247 L237 128 Q239 101 222 83 Q212 75 210 64Z" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="4"/>
+          <rect x="53" y="41" width="164" height="30" rx="7" fill="#d2ebff" stroke="#fff" stroke-width="3"/>
+          <rect x="60" y="30" width="150" height="20" rx="6" fill="#fbfcff" stroke="#e6f4ff" stroke-width="4"/>
+          <rect x="95" y="159" width="80" height="66" rx="12" fill="#fff" stroke="#d8ebf4" stroke-width="3" transform="rotate(-5 135 190)"/>
+          <text x="135" y="208" fill="#005EB8" font-size="55" font-family="Arial,sans-serif" font-weight="900" text-anchor="middle" transform="rotate(-5 135 190)">?</text>
+        </svg>
+      </div>
+      <p class="promo-note">Exact number wins • No clues • Just your best guess</p>
+    </div>
+    <div class="play">
+      <div class="step"><span class="step-num">01</span> MAKE YOUR GUESS</div>
+      <h2>Feeling lucky?</h2>
+      <p class="description">Enter how many sweets you think are in the jar. <strong>Only the exact number counts!</strong></p>
+      <form id="guessForm" autocomplete="off">
+        <label for="guessInput">Your sweet count</label>
+        <div class="input-wrap"><input id="guessInput" name="guess" type="text" inputmode="numeric" pattern="[0-9, ]*" maxlength="12" spellcheck="false" autocomplete="off" aria-describedby="guessHelp" /><span class="input-unit">SWEETS</span></div>
+        <button class="guess-btn" type="submit" id="guessBtn">CHECK MY GUESS <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-7-7 7 7-7 7"/></svg></button>
+      </form>
+      <div class="result" id="result" role="status" aria-live="polite" aria-atomic="true"><div class="result-icon" id="resultIcon">?</div><div><p class="result-title" id="resultTitle">Ready when you are</p><p class="result-copy" id="resultCopy">Enter your guess and press the button above.</p></div></div>
+      <div class="stats"><div class="stat">Total guesses: <strong id="attemptCount">0</strong></div><div class="rule" id="guessHelp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg> Exact matches only</div></div>
+    </div>
+  </section>
+  <p class="footer">Offline event game • Inspired by the NHS colour palette • Not an official NHS product</p>
+</main>
+<canvas id="confetti" aria-hidden="true"></canvas>
+<div class="backdrop" id="organiserModal" hidden>
+  <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-header"><span class="modal-label">ORGANISER CONTROL</span><h3 id="modalTitle">Set up your game</h3><p id="modalSubtitle">Choose the correct sweet count and an organiser PIN to keep it private.</p><button class="close-modal" id="modalClose" type="button" aria-label="Close settings" hidden>×</button></div>
+    <div class="modal-main">
+      <form id="unlockForm" hidden>
+        <div class="field"><label for="unlockPin">Enter organiser PIN</label><input id="unlockPin" inputmode="numeric" type="password" autocomplete="off" maxlength="8" required /></div>
+        <p class="error-text" id="unlockError" role="alert"></p>
+        <button type="submit" class="modal-action">Unlock settings</button>
+      </form>
+      <form id="settingsForm" hidden>
+        <div class="field"><label for="winningNumber">Exact number of sweets</label><input id="winningNumber" type="text" inputmode="numeric" placeholder="e.g. 276" maxlength="12" required /><small>Use any whole number from 0 to 999,999,999. This number stays hidden from players.</small></div>
+        <div class="field"><label for="adminPin">Organiser PIN (4–8 digits)</label><input id="adminPin" type="password" inputmode="numeric" maxlength="8" minlength="4" placeholder="Choose a PIN" autocomplete="new-password" required /><small>Keep this PIN somewhere safe — you need it to edit the game.</small></div>
+        <div class="notice" id="savedNotice" hidden>Changing the winning number starts a fresh round and resets the guess counter.</div>
+        <p class="error-text" id="settingsError" role="alert"></p>
+        <button type="submit" class="modal-action" id="saveSettings">Save &amp; start the game</button>
+        <button class="secondary-action" id="resetAttempts" type="button" hidden>Reset guess counter</button>
+      </form>
+    </div>
+  </section>
+</div>
+<div class="winner-backdrop" id="winnerModal" hidden>
+  <section class="winner-card" role="dialog" aria-modal="true" aria-labelledby="winnerTitle">
+    <div class="trophy" aria-hidden="true">🏆</div><div class="winner-eyebrow">WE HAVE A WINNER!</div>
+    <h2 id="winnerTitle">CONGRATULATIONS!</h2><p><strong>You've guessed the exact number of sweets!</strong><br />What a brilliant guess!</p>
+    <button class="winner-close" id="winnerClose" type="button">Back to the game</button>
+  </section>
+</div>
+<div class="winner-backdrop" id="loserModal" hidden>
+  <section class="winner-card loss" role="dialog" aria-modal="true" aria-labelledby="loserTitle">
+    <div class="trophy" aria-hidden="true">✕</div><div class="winner-eyebrow">NOT THIS TIME</div>
+    <h2 id="loserTitle">UNLUCKY</h2><p><strong>That’s incorrect.</strong></p>
+    <button class="winner-close" id="loserClose" type="button">Back to the game</button>
+  </section>
+</div>
+<script>
+(function () {
+  'use strict';
+  const STORAGE_KEY = 'sweet-guesser-nhs-v1';
+  const $ = id => document.getElementById(id);
+  const gameForm = $('guessForm'), guessInput = $('guessInput'), guessBtn = $('guessBtn');
+  const result = $('result'), resultIcon = $('resultIcon'), resultTitle = $('resultTitle'), resultCopy = $('resultCopy');
+  const organiserModal = $('organiserModal'), winnerModal = $('winnerModal'), loserModal = $('loserModal');
+  const unlockForm = $('unlockForm'), settingsForm = $('settingsForm');
+  const appState = { target: null, pin: null, attempts: 0, sound: false };
+  let firstSetup = false;
+  let unlocked = false;
+  let lastFocus = null;
+  let storageAvailable = true;
+  let confettiId = 0;
+
+  function loadState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      if (saved && Number.isSafeInteger(saved.target) && saved.target >= 0 && saved.target <= 999999999 && typeof saved.pin === 'string' && /^\d{4,8}$/.test(saved.pin)) {
+        appState.target = saved.target;
+        appState.pin = saved.pin;
+        appState.attempts = Number.isSafeInteger(saved.attempts) && saved.attempts >= 0 ? saved.attempts : 0;
+        appState.sound = !!saved.sound;
+      }
+    } catch (err) { storageAvailable = false; }
+    updateStats(); updateSound();
+  }
+  function persist() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState)); storageAvailable = true; }
+    catch (err) { storageAvailable = false; }
+  }
+  function parseCount(value) {
+    if (!/^[\d\s,]+$/.test(value)) return null;
+    const normalized = value.replace(/[\s,]/g, '');
+    if (!/^\d{1,9}$/.test(normalized)) return null;
+    const number = Number(normalized);
+    return Number.isSafeInteger(number) && number >= 0 && number <= 999999999 ? number : null;
+  }
+  function updateStats() { $('attemptCount').textContent = appState.attempts.toLocaleString('en-GB'); }
+  function showResult(type, heading, detail, glyph) {
+    result.className = 'result' + (type ? ' ' + type : '');
+    resultTitle.textContent = heading;
+    resultCopy.textContent = detail;
+    resultIcon.textContent = glyph;
+  }
+  function sound(frequency, length, delay, wave) {
+    if (!appState.sound) return;
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
+      const context = new AudioContextClass();
+      const oscillator = context.createOscillator(), gain = context.createGain();
+      const t = context.currentTime + delay;
+      oscillator.type = wave || 'sine'; oscillator.frequency.setValueAtTime(frequency, t);
+      gain.gain.setValueAtTime(0.0001,t);gain.gain.exponentialRampToValueAtTime(.13,t+.018);
+      gain.gain.exponentialRampToValueAtTime(.0001,t+length);
+      oscillator.connect(gain);gain.connect(context.destination);oscillator.start(t);oscillator.stop(t+length+.01);
+      oscillator.onended = () => context.close();
+    } catch(err) { /* audio is optional */ }
+  }
+  function updateSound() {
+    $('soundText').textContent = appState.sound ? 'Sound on' : 'Sound off';
+    $('soundToggle').setAttribute('aria-label', appState.sound ? 'Turn sound off' : 'Turn sound on');
+    $('soundGlyph').setAttribute('d', appState.sound ? 'M15.5 8.5a5 5 0 0 1 0 7m2.5-10a9 9 0 0 1 0 13' : 'M16 9l5 6m0-6-5 6');
+  }
+  $('soundToggle').addEventListener('click', () => { appState.sound = !appState.sound;updateSound();persist();if (appState.sound) sound(660,.13,0); });
+
+  gameForm.addEventListener('submit', event => {
+    event.preventDefault();
+    if (appState.target === null) { openOrganiser(); return; }
+    const guess = parseCount(guessInput.value);
+    if (guess === null) { showResult('invalid', 'Enter a valid number', 'Please enter a whole number between 0 and 999,999,999.', '!');guessInput.focus();return; }
+    appState.attempts += 1; updateStats();persist();
+    if (guess === appState.target) {
+      showResult('won', 'CONGRATULATIONS!', 'That is the exact number. We have a winner!', '✓');
+      sound(523.25,.22,0);sound(659.25,.25,.18);sound(783.99,.35,.38);sound(1046.5,.50,.58);
+      winnerModal.hidden = false; $('winnerClose').focus(); launchConfetti();
+    } else {
+      showResult('failed', 'Unlucky, that’s incorrect', 'One guess per person.', '✕');
+      sound(200,.15,0,'triangle');
+      loserModal.hidden = false; $('loserClose').focus();
+    }
+  });
+  $('winnerClose').addEventListener('click', () => { winnerModal.hidden = true;guessInput.value = '';guessInput.focus(); });
+  winnerModal.addEventListener('click', event => { if (event.target === winnerModal) $('winnerClose').click(); });
+  $('loserClose').addEventListener('click', () => { loserModal.hidden = true;guessInput.focus();guessInput.select(); });
+  loserModal.addEventListener('click', event => { if (event.target === loserModal) $('loserClose').click(); });
+
+  function openOrganiser() {
+    lastFocus = document.activeElement;
+    firstSetup = appState.target === null;
+    unlocked = firstSetup;
+    organiserModal.hidden = false;
+    $('modalClose').hidden = firstSetup;
+    $('unlockError').textContent = ''; $('settingsError').textContent = '';
+    unlockForm.reset();settingsForm.reset();
+    if (firstSetup) {
+      $('modalTitle').textContent = 'Set up your game';
+      $('modalSubtitle').textContent = 'Set the exact winning sweet count and choose your private organiser PIN.';
+      unlockForm.hidden = true; settingsForm.hidden = false;
+      $('savedNotice').hidden = true;$('resetAttempts').hidden = true;
+      $('saveSettings').textContent = 'Save & start the game';
+      $('winningNumber').focus();
+    } else {
+      $('modalTitle').textContent = 'Organiser settings';
+      $('modalSubtitle').textContent = 'Enter your PIN to change the correct number or reset the game.';
+      unlockForm.hidden = false; settingsForm.hidden = true;
+      $('unlockPin').focus();
+    }
+  }
+  function closeOrganiser() {
+    if (firstSetup && appState.target === null) return;
+    organiserModal.hidden = true;
+    if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+  }
+  $('organiserBtn').addEventListener('click', openOrganiser);
+  $('modalClose').addEventListener('click', closeOrganiser);
+  organiserModal.addEventListener('click', event => { if(event.target === organiserModal) closeOrganiser(); });
+  unlockForm.addEventListener('submit', event => {
+    event.preventDefault();
+    if ($('unlockPin').value !== appState.pin) { $('unlockError').textContent = 'Incorrect PIN. Please try again.'; $('unlockPin').select();return; }
+    unlocked = true;unlockForm.hidden = true;settingsForm.hidden = false;
+    $('modalTitle').textContent = 'Manage the game';
+    $('modalSubtitle').textContent = 'Edit the winning number, change the PIN or reset the guess counter.';
+    $('winningNumber').value = String(appState.target);
+    $('adminPin').value = appState.pin;
+    $('savedNotice').hidden = false;$('resetAttempts').hidden = false;
+    $('saveSettings').textContent = 'Save changes';
+    $('winningNumber').focus();$('winningNumber').select();
+  });
+  settingsForm.addEventListener('submit', event => {
+    event.preventDefault();
+    if (!unlocked) return;
+    const target = parseCount($('winningNumber').value);
+    const pin = $('adminPin').value.trim();
+    if (target === null) { $('settingsError').textContent = 'Enter a whole number between 0 and 999,999,999.';$('winningNumber').focus();return; }
+    if (!/^\d{4,8}$/.test(pin)) { $('settingsError').textContent = 'Your organiser PIN must contain 4 to 8 digits.';$('adminPin').focus();return; }
+    if (firstSetup || target !== appState.target) appState.attempts = 0;
+    appState.target = target; appState.pin = pin;
+    updateStats(); persist();
+    firstSetup = false; closeOrganiser();guessInput.value = '';
+    showResult('', 'Ready when you are', 'Enter your guess and press the button above.', '?');
+    guessInput.focus();
+    if (!storageAvailable) alert('Your browser cannot save settings. They will work for this session, but may need setting again next time.');
+  });
+  $('resetAttempts').addEventListener('click', () => {
+    if(!unlocked || !window.confirm('Reset the guess counter to zero? The winning number will not change.')) return;
+    appState.attempts = 0;updateStats();persist();
+    $('settingsError').style.color = '#007f3b';
+    $('settingsError').textContent = 'Guess counter reset.';
+    setTimeout(() => { $('settingsError').style.color = '';$('settingsError').textContent = ''; }, 2300);
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      if(!winnerModal.hidden) $('winnerClose').click();
+      else if(!loserModal.hidden) $('loserClose').click();
+      else if(!organiserModal.hidden) closeOrganiser();
+    }
+    if(event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'o') {event.preventDefault(); if(organiserModal.hidden) openOrganiser();}
+  });
+
+  function launchConfetti() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const canvas = $('confetti'), ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    cancelAnimationFrame(confettiId);
+    const ratio = Math.min(2, window.devicePixelRatio || 1);
+    const width = window.innerWidth, height = window.innerHeight;
+    canvas.width = Math.round(width * ratio);canvas.height = Math.round(height * ratio);
+    ctx.setTransform(ratio,0,0,ratio,0,0);
+    const colours = ['#005EB8','#00A9CE','#ffcb05','#f35e8d','#8bcf69','#fff','#a27bfb','#f99148'];
+    const pieces = Array.from({length:235}, () => ({
+      x: Math.random() * width,
+      y: -height * .30 + Math.random() * height * .75,
+      vx: (Math.random() -.5) * 4.9,
+      vy: 2.6 + Math.random()*4.0,
+      size: 5 + Math.random()*9,
+      tilt: Math.random()*Math.PI*2,
+      spin: (Math.random()-.5)*.22,
+      sway: Math.random()*Math.PI*2,
+      colour:colours[Math.floor(Math.random()*colours.length)],
+      shape:Math.random()>.26
+    }));
+    const started = performance.now();
+    function frame(now) {
+      const elapsed = now - started;
+      ctx.clearRect(0,0,width,height);
+      pieces.forEach(p => {
+        p.x += p.vx + Math.sin(p.sway)*.6;p.y += p.vy;p.tilt += p.spin;p.sway+=.04;
+        if(p.y > height+25){p.y=-25;p.x=Math.random()*width;}
+        ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.tilt);ctx.fillStyle=p.colour;
+        if(p.shape)ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*.62);
+        else {ctx.beginPath();ctx.arc(0,0,p.size/2,0,Math.PI*2);ctx.fill();}
+        ctx.restore();
+      });
+      if (elapsed < 5300) confettiId = requestAnimationFrame(frame);
+      else ctx.clearRect(0,0,width,height);
+    }
+    confettiId = requestAnimationFrame(frame);
+  }
+
+  loadState();
+  if (appState.target === null) openOrganiser();
+  else guessInput.focus();
+})();
+</script>
+<script>if ("serviceWorker" in navigator && location.protocol.startsWith("http")) { window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {})); }</script>
+</body>
+</html>
